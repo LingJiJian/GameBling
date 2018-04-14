@@ -1,19 +1,19 @@
-1,0.00,,0,Project command:f:\WorkSpace\LayaWorkSpace\GameBling/.actionScriptProperties;iflash=false;windowshow=false;chromerun=false;quickcompile=true
-Project configuration:f:\WorkSpace\LayaWorkSpace\GameBling/.actionScriptProperties.
-1,0.00,,0,output path:f:/WorkSpace/LayaWorkSpace/GameBling/bin/h5/
-1,0.00,,0,Main Class:f:/WorkSpace/LayaWorkSpace/GameBling/src/LayaSample.as
+1,0.00,,0,Project command:e:\github\GameBling/.actionScriptProperties;iflash=false;windowshow=false;chromerun=false;quickcompile=true
+Project configuration:e:\github\GameBling/.actionScriptProperties.
+1,0.00,,0,output path:e:/github/GameBling/bin/h5/
+1,0.00,,0,Main Class:e:/github/GameBling/src/LayaSample.as
 1,0.00,,0,output file:LayaSample
-1,0.00,,0,compilerSourcePath f:/WorkSpace/LayaWorkSpace/GameBling/libs/laya/src/
+1,0.00,,0,compilerSourcePath e:/github/GameBling/libs/laya/src/
 
-1,0.00,,0,Compile Path:f:/WorkSpace/LayaWorkSpace/GameBling/src/
+1,0.00,,0,Compile Path:e:/github/GameBling/src/
 
-1,0.00,,0,Compile Path:f:/WorkSpace/LayaWorkSpace/GameBling/libs/laya/src/
+1,0.00,,0,Compile Path:e:/github/GameBling/libs/laya/src/
 
-1,0.00,f:/WorkSpace/LayaWorkSpace/GameBling/src,0,Collect
-1,0.00,f:/WorkSpace/LayaWorkSpace/GameBling/libs/laya/src,0,Collect
+1,0.00,e:/github/GameBling/src,0,Collect
+1,0.00,e:/github/GameBling/libs/laya/src,0,Collect
 1,2.00,,0,read class message
-1,89.67,,0,Disable Flash3D f:/WorkSpace/LayaWorkSpace/GameBling/src/LayaSample.as
-12,89.67,f:/WorkSpace/LayaWorkSpace/GameBling/bin/h5/LayaSample.max.js,833200,
-11,89.67,f:/WorkSpace/LayaWorkSpace/GameBling/bin/h5/LayaSample.max.html,893,
+1,89.95,,0,Disable Flash3D e:/github/GameBling/src/LayaSample.as
+12,89.95,e:/github/GameBling/bin/h5/LayaSample.max.js,2592795,
+11,89.95,e:/github/GameBling/bin/h5/LayaSample.max.html,893,
 ******************************************************************************
-14,89.67,,0,
+14,89.95,,0,
