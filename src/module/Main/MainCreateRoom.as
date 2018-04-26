@@ -4,6 +4,8 @@ package module.Main
 	import module.Common.IUIBase;
 	import laya.events.Event;
 	import module.Common.UIManager;
+	import module.Main.MainProxy;
+	import module.Common.GameConfig;
 
 
 	public class MainCreateRoom extends MainCreateRoomUI implements IUIBase {
@@ -30,6 +32,9 @@ package module.Main
 
 		public function onBtnCreate(e:Event):void{
 			
+			var data:Object = {};
+			data.gameid = 'NiuNiu';
+			MainProxy.GetInstance().reqCreateRoom(data);
 		}
 	}
 

@@ -9,7 +9,7 @@ package module.Common
 					this[msg['msgid']](msg);
 				}else{
 					if(isAlertError){
-
+						trace(msg);
 					}
 				}
 			}

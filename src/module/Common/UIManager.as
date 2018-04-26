@@ -1,11 +1,11 @@
 package module.Common
 {
-
+	import laya.display.Node;
+	import laya.ui.Dialog;
 	import laya.ui.View;
 	import laya.utils.Dictionary;
-	import laya.display.Node;
+
 	import module.Common.UIConfig;
-	import laya.ui.Dialog;
 
 	public class UIManager {
 

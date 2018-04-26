@@ -7,7 +7,9 @@ package module.Common
 	import laya.utils.ClassUtils;
 	import module.Main.MainCreateRoom;
 	import module.Main.MainJoinRoom;
-
+	import module.G_NIUNIU.NIUNIUView;
+	import module.MJ_GD.MJ_GDView;
+	
 
 	/**
 	 * UI配置
@@ -18,7 +20,9 @@ package module.Common
 			"LoginView"			:	{"class":LoginView},
 			"MainView" 			:   {"class":MainView,"isDontDestroy":true},
 			"MainCreateRoom" 	: 	{"class":MainCreateRoom},
-			"MainJoinRoom" 		: 	{"class":MainJoinRoom}
+			"MainJoinRoom" 		: 	{"class":MainJoinRoom},
+			"NIUNIUView"		:	{'class':NIUNIUView},
+			"MJ_GDView"			:	{'class':MJ_GDView}
 		};
 
 		public static function init():void{

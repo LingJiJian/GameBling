@@ -2,9 +2,9 @@
 	import laya.webgl.WebGL;
 	
     import laya.utils.Handler;
-    import view.Login.LoginView;
     import module.Common.Network;
     import module.Common.UIManager;
+    import module.Common.GameConfig;
 
 	public class LayaSample {
 		
@@ -19,7 +19,7 @@
         private function onLoad():void
         {
             UIManager.GetInstance().showView("LoginView");
-            Network.GetInstance().connect();
+            Network.GetInstance().connect(GameConfig.ip,GameConfig.port);
         }
 	}
 }

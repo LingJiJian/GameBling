@@ -3,6 +3,7 @@ package module.Main
 	import module.Common.MsgIds;
 	import module.Common.ProxyBase;
 	import module.Common.Network;
+	import module.Common.UIManager;
 
 	public class MainProxy extends ProxyBase{
 
@@ -20,12 +21,15 @@ package module.Main
 
 		public function reqCreateRoom(param:Object):void
 		{
-			Network.GetInstance().send("Login",{msgid:MsgIds.Main_CreateRoom,param:param});
+			Network.GetInstance().send("Lobby",{msgid:MsgIds.Main_CreateRoom,param:param});
 		}
 
-		public function rspCreateRoom(obj:Object):void
+		public function rspCreateRoom(param:Object):void
 		{
-			
+			UIManager.GetInstance().closeAll();
+			if(param['data']['gameid'] == "NIUNIU"){
+				UIManager.GetInstance().showView("NIUNIUView");
+			}
 		}
 	}
 

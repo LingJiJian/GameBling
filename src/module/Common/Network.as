@@ -7,6 +7,7 @@ package module.Common
 	import laya.debug.tools.JsonTool;
 	import module.Login.LoginProxy;
 	import module.Main.MainProxy;
+	import module.Common.GameConfig;
 	/**
 		网络通讯
 	 */
@@ -37,13 +38,13 @@ package module.Common
 		}
 
 
-		public function connect(ip:String=GameConfig.ip,port:String=GameConfig.port)
+		public function connect(ip:String,port:String):void
 		{
 			this.socket.close();
 			this.socket.connectByUrl("ws://"+ip+":"+port);//建立连接；
 		}
 
-		public function send(module:String,obj:Object){
+		public function send(module:String,obj:Object):void{
 
 			if(this.socket.connected){
 				obj.module = module;
@@ -60,7 +61,6 @@ package module.Common
         }
         private function receiveHandler(msg:Object = null):void
         {
-			// trace(msg);
 			var obj:Object = JSON.parse(msg as String);
 			LoginProxy.GetInstance().onMsg(obj);
 			MainProxy.GetInstance().onMsg(obj);
