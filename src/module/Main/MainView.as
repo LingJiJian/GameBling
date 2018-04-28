@@ -11,7 +11,7 @@ package module.Main
 
 		}
 
-		public function onOpen():void{
+		public function onOpen(param:Object):void{
 			this.btn_create.on(Event.CLICK,this,onBtnCreate);
 			this.btn_join.on(Event.CLICK,this,onBtnJoin);
 		}

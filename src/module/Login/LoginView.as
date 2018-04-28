@@ -17,7 +17,7 @@ package module.Login
 			Network.GetInstance().send("Login",{msgid:MsgIds.Login_Login,account:this.input_account.text});
 		}
 
-		public function onOpen():void{
+		public function onOpen(param:Object):void{
 			this.btn_login.on(Event.CLICK,this,onBtnLogin);
 		}
 

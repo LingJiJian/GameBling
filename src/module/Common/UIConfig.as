@@ -9,6 +9,7 @@ package module.Common
 	import module.Main.MainJoinRoom;
 	import module.G_NIUNIU.NIUNIUView;
 	import module.MJ_GD.MJ_GDView;
+	import module.Common.view.Alert;
 	
 
 	/**
@@ -22,7 +23,8 @@ package module.Common
 			"MainCreateRoom" 	: 	{"class":MainCreateRoom},
 			"MainJoinRoom" 		: 	{"class":MainJoinRoom},
 			"NIUNIUView"		:	{'class':NIUNIUView},
-			"MJ_GDView"			:	{'class':MJ_GDView}
+			"MJ_GDView"			:	{'class':MJ_GDView},
+			"Alert"				:   {'class':Alert}
 		};
 
 		public static function init():void{

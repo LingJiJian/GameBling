@@ -27,8 +27,21 @@ package module.Main
 		public function rspCreateRoom(param:Object):void
 		{
 			UIManager.GetInstance().closeAll();
-			if(param['data']['gameid'] == "NIUNIU"){
-				UIManager.GetInstance().showView("NIUNIUView");
+			if(param['data']['gameid'] == "NiuNiu"){
+				UIManager.GetInstance().showView("NIUNIUView",param);
+			}
+		}
+
+		public function reqJoinRoom(param:Object):void
+		{
+			Network.GetInstance().send("Lobby",{msgid:MsgIds.Main_JoinRoom,param:param});
+		}
+
+		public function rspJoinRoom(param:Object):void
+		{
+			UIManager.GetInstance().closeAll();
+			if(param['data']['gameid'] == "NiuNiu"){
+				UIManager.GetInstance().showView("NIUNIUView",param);
 			}
 		}
 	}

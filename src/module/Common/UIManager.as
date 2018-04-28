@@ -30,7 +30,7 @@ package module.Common
 					Laya.stage.getChildByName(viewId) !=null;
 		}
 
-		public function showView(viewId:String):void {
+		public function showView(viewId:String,param:Object=null):void {
 
 			var child:Node = Laya.stage.getChildByName(viewId);
 			var viewRef:Object = getViewRef(viewId);
@@ -39,14 +39,14 @@ package module.Common
 					var view:View = UIConfig.getView(viewId);
 					viewRef.view = view;
 				}
-				viewRef.view.onOpen();
+				viewRef.view.onOpen(param);
 				if(viewRef.view is Dialog){
 					viewRef.view.show();
 				}else{
 					Laya.stage.addChild(viewRef.view);
 				}
 			}else{
-				viewRef.view.onOpen();
+				viewRef.view.onOpen(param);
 				if(viewRef.view is Dialog){
 					viewRef.view.show();
 				}else{

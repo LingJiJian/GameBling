@@ -12,8 +12,8 @@ Project configuration:e:\github\GameBling/.actionScriptProperties.
 1,0.00,e:/github/GameBling/src,0,Collect
 1,0.00,e:/github/GameBling/libs/laya/src,0,Collect
 1,2.00,,0,read class message
-1,89.74,,0,Disable Flash3D e:/github/GameBling/src/LayaSample.as
-12,89.74,e:/github/GameBling/bin/h5/LayaSample.max.js,1215032,
-11,89.74,e:/github/GameBling/bin/h5/LayaSample.max.html,893,
+1,89.63,,0,Disable Flash3D e:/github/GameBling/src/LayaSample.as
+12,89.63,e:/github/GameBling/bin/h5/LayaSample.max.js,1219286,
+11,89.63,e:/github/GameBling/bin/h5/LayaSample.max.html,893,
 ******************************************************************************
-14,89.74,,0,
+14,89.63,,0,

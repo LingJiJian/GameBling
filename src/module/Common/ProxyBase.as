@@ -1,5 +1,7 @@
 package module.Common
 {
+	import module.Common.UIManager;
+
 	public class ProxyBase {
 
 		protected var isAlertError:Boolean = true;
@@ -9,7 +11,7 @@ package module.Common
 					this[msg['msgid']](msg);
 				}else{
 					if(isAlertError){
-						trace(msg);
+						UIManager.GetInstance().showView("Alert",{text:msg['msg']});
 					}
 				}
 			}

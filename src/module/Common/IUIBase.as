@@ -1,7 +1,7 @@
 package module.Common
 {
 	public interface IUIBase{
-		function onOpen():void;
+		function onOpen(param:Object):void;
 		function onClose():void;
 	}
 

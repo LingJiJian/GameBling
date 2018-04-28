@@ -475,6 +475,11 @@ var MsgIds=(function(){
 	MsgIds.Login_Login="rspLogin";
 	MsgIds.Main_CreateRoom="rspCreateRoom";
 	MsgIds.Main_JoinRoom="rspJoinRoom";
+	MsgIds.Main_LeaveRoom="rspLeaveRoom";
+	MsgIds.NiuNiu_SetPos='rspNiuNiuSetPos';
+	MsgIds.NiuNiu_Deal='rspNiuNiuDeal';
+	MsgIds.NiuNiu_Update='rspNiuNiuUpdate';
+	MsgIds.NiuNiu_SyncGame='rspNiuNiuSyncGame';
 	return MsgIds;
 })()
 
@@ -522,6 +527,7 @@ var Network=(function(){
 		var obj=JSON.parse(msg);
 		LoginProxy.GetInstance().onMsg(obj);
 		MainProxy.GetInstance().onMsg(obj);
+		NIUNIUProxy.GetInstance().onMsg(obj);
 	}
 
 	__proto.closeHandler=function(e){
@@ -558,7 +564,7 @@ var ProxyBase=(function(){
 				this[msg['msgid']](msg);
 				}else{
 				if(this.isAlertError){
-					console.log(msg);
+					UIManager.GetInstance().showView("Alert",{text:msg['msg']});
 				}
 			}
 		}
@@ -594,7 +600,8 @@ var UIConfig$1=(function(){
 			"MainCreateRoom" :{"class":MainCreateRoom},
 			"MainJoinRoom" :{"class":MainJoinRoom},
 			"NIUNIUView" :{'class':NIUNIUView},
-			"MJ_GDView" :{'class':MJ_GDView}
+			"MJ_GDView" :{'class':MJ_GDView},
+			"Alert" :{'class':Alert}
 	};}
 
 	]);
@@ -618,7 +625,7 @@ var UIManager=(function(){
 		Laya.stage.getChildByName(viewId)!=null;
 	}
 
-	__proto.showView=function(viewId){
+	__proto.showView=function(viewId,param){
 		var child=Laya.stage.getChildByName(viewId);
 		var viewRef=this.getViewRef(viewId);
 		if(child==null){
@@ -626,14 +633,14 @@ var UIManager=(function(){
 				var view=UIConfig$1.getView(viewId);
 				viewRef.view=view;
 			}
-			viewRef.view.onOpen();
+			viewRef.view.onOpen(param);
 			if((viewRef.view instanceof laya.ui.Dialog )){
 				viewRef.view.show();
 				}else{
 				Laya.stage.addChild(viewRef.view);
 			}
 			}else{
-			viewRef.view.onOpen();
+			viewRef.view.onOpen(param);
 			if((viewRef.view instanceof laya.ui.Dialog )){
 				viewRef.view.show();
 				}else{
@@ -15863,6 +15870,51 @@ var UIConfig=(function(){
 })()
 
 
+//class module.G_NIUNIU.NIUNIUProxy extends module.Common.ProxyBase
+var NIUNIUProxy=(function(_super){
+	function NIUNIUProxy(){
+		NIUNIUProxy.__super.call(this);
+	}
+
+	__class(NIUNIUProxy,'module.G_NIUNIU.NIUNIUProxy',_super);
+	var __proto=NIUNIUProxy.prototype;
+	__proto.reqNiuNiuSetPos=function(param){
+		Network.GetInstance().send("NiuNiu",{msgid:'rspNiuNiuSetPos',param:param});
+	}
+
+	__proto.rspNiuNiuSetPos=function(param){
+		UIManager.GetInstance().showView("Alert",{text:"上庄成功"});
+	}
+
+	__proto.reqNiuNiuDeal=function(param){
+		Network.GetInstance().send("NiuNiu",{msgid:'rspNiuNiuDeal',param:param});
+	}
+
+	__proto.rspNiuNiuDeal=function(param){}
+	// }
+	__proto.rspNiuNiuUpdate=function(param){
+		console.log(param);
+	}
+
+	// }
+	__proto.rspNiuNiuSyncGame=function(param){
+		console.log(param);
+	}
+
+	__proto.reqNiuNiuLeave=function(){}
+	__proto.rspNiuNiuLeave=function(param){}
+	NIUNIUProxy.GetInstance=function(){
+		if(NIUNIUProxy._instance==null){
+			NIUNIUProxy._instance=new NIUNIUProxy();
+		}
+		return NIUNIUProxy._instance;
+	}
+
+	NIUNIUProxy._instance=null;
+	return NIUNIUProxy;
+})(ProxyBase)
+
+
 //class module.Login.LoginProxy extends module.Common.ProxyBase
 var LoginProxy=(function(_super){
 	function LoginProxy(){
@@ -15889,37 +15941,6 @@ var LoginProxy=(function(_super){
 
 	LoginProxy._instance=null;
 	return LoginProxy;
-})(ProxyBase)
-
-
-//class module.Main.MainProxy extends module.Common.ProxyBase
-var MainProxy=(function(_super){
-	function MainProxy(){
-		MainProxy.__super.call(this);
-	}
-
-	__class(MainProxy,'module.Main.MainProxy',_super);
-	var __proto=MainProxy.prototype;
-	__proto.reqCreateRoom=function(param){
-		Network.GetInstance().send("Lobby",{msgid:"rspCreateRoom",param:param});
-	}
-
-	__proto.rspCreateRoom=function(param){
-		UIManager.GetInstance().closeAll();
-		if(param['data']['gameid']=="NIUNIU"){
-			UIManager.GetInstance().showView("NIUNIUView");
-		}
-	}
-
-	MainProxy.GetInstance=function(){
-		if(MainProxy._instance==null){
-			MainProxy._instance=new MainProxy();
-		}
-		return MainProxy._instance;
-	}
-
-	MainProxy._instance=null;
-	return MainProxy;
 })(ProxyBase)
 
 
@@ -16481,6 +16502,48 @@ var Node=(function(_super){
 	Node.MOUSEENABLE=0x2;
 	return Node;
 })(EventDispatcher)
+
+
+//class module.Main.MainProxy extends module.Common.ProxyBase
+var MainProxy=(function(_super){
+	function MainProxy(){
+		MainProxy.__super.call(this);
+	}
+
+	__class(MainProxy,'module.Main.MainProxy',_super);
+	var __proto=MainProxy.prototype;
+	__proto.reqCreateRoom=function(param){
+		Network.GetInstance().send("Lobby",{msgid:"rspCreateRoom",param:param});
+	}
+
+	__proto.rspCreateRoom=function(param){
+		UIManager.GetInstance().closeAll();
+		if(param['data']['gameid']=="NiuNiu"){
+			UIManager.GetInstance().showView("NIUNIUView",param);
+		}
+	}
+
+	__proto.reqJoinRoom=function(param){
+		Network.GetInstance().send("Lobby",{msgid:"rspJoinRoom",param:param});
+	}
+
+	__proto.rspJoinRoom=function(param){
+		UIManager.GetInstance().closeAll();
+		if(param['data']['gameid']=="NiuNiu"){
+			UIManager.GetInstance().showView("NIUNIUView",param);
+		}
+	}
+
+	MainProxy.GetInstance=function(){
+		if(MainProxy._instance==null){
+			MainProxy._instance=new MainProxy();
+		}
+		return MainProxy._instance;
+	}
+
+	MainProxy._instance=null;
+	return MainProxy;
+})(ProxyBase)
 
 
 /**
@@ -38658,45 +38721,6 @@ var WebGLImage=(function(_super){
 })(HTMLImage)
 
 
-//class ui.G_NIUNIU.G_NIUNIUUI extends laya.ui.View
-var G_NIUNIUUI=(function(_super){
-	function G_NIUNIUUI(){
-		this.btn_back=null;
-		G_NIUNIUUI.__super.call(this);
-	}
-
-	__class(G_NIUNIUUI,'ui.G_NIUNIU.G_NIUNIUUI',_super);
-	var __proto=G_NIUNIUUI.prototype;
-	__proto.createChildren=function(){
-		laya.ui.Component.prototype.createChildren.call(this);
-		this.createView(G_NIUNIUUI.uiView);
-	}
-
-	G_NIUNIUUI.uiView={"type":"View","props":{"width":1280,"height":720},"child":[{"type":"Button","props":{"y":37,"x":1165,"var":"btn_back","skin":"comp/button.png","label":"返回"}}]};
-	return G_NIUNIUUI;
-})(View)
-
-
-//class ui.Login.LoginViewUI extends laya.ui.View
-var LoginViewUI=(function(_super){
-	function LoginViewUI(){
-		this.btn_login=null;
-		this.input_account=null;
-		LoginViewUI.__super.call(this);
-	}
-
-	__class(LoginViewUI,'ui.Login.LoginViewUI',_super);
-	var __proto=LoginViewUI.prototype;
-	__proto.createChildren=function(){
-		laya.ui.Component.prototype.createChildren.call(this);
-		this.createView(LoginViewUI.uiView);
-	}
-
-	LoginViewUI.uiView={"type":"View","props":{"width":1280,"height":720},"child":[{"type":"HBox","props":{"width":300,"height":200,"centerY":0,"centerX":0,"anchorY":0.5,"anchorX":0.5},"child":[{"type":"Button","props":{"y":189,"var":"btn_login","skin":"comp/button.png","name":"btn_login","label":"登陆","centerX":0}},{"type":"TextInput","props":{"y":139,"var":"input_account","prompt":"请输入账号","pivotY":0.5,"pivotX":0.5,"name":"input_accountw","centerX":0,"bgColor":"#c0c0c0","align":"center"}}]}]};
-	return LoginViewUI;
-})(View)
-
-
 /**
 *<code>Dialog</code> 组件是一个弹出对话框，实现对话框弹出，拖动，模式窗口功能。
 *可以通过UIConfig设置弹出框背景透明度，模式窗口点击边缘是否关闭等
@@ -39022,6 +39046,46 @@ var Dialog=(function(_super){
 	Dialog.YES="yes";
 	Dialog._manager=null;
 	return Dialog;
+})(View)
+
+
+//class ui.G_NIUNIU.G_NIUNIUUI extends laya.ui.View
+var G_NIUNIUUI=(function(_super){
+	function G_NIUNIUUI(){
+		this.btn_back=null;
+		this.btn_pos=null;
+		G_NIUNIUUI.__super.call(this);
+	}
+
+	__class(G_NIUNIUUI,'ui.G_NIUNIU.G_NIUNIUUI',_super);
+	var __proto=G_NIUNIUUI.prototype;
+	__proto.createChildren=function(){
+		laya.ui.Component.prototype.createChildren.call(this);
+		this.createView(G_NIUNIUUI.uiView);
+	}
+
+	G_NIUNIUUI.uiView={"type":"View","props":{"width":1280,"height":720},"child":[{"type":"Button","props":{"y":37,"x":1165,"var":"btn_back","skin":"comp/button.png","label":"返回"}},{"type":"Button","props":{"y":95,"x":135,"width":75,"var":"btn_pos","skin":"comp/button.png","label":"上庄","height":33}}]};
+	return G_NIUNIUUI;
+})(View)
+
+
+//class ui.Login.LoginViewUI extends laya.ui.View
+var LoginViewUI=(function(_super){
+	function LoginViewUI(){
+		this.btn_login=null;
+		this.input_account=null;
+		LoginViewUI.__super.call(this);
+	}
+
+	__class(LoginViewUI,'ui.Login.LoginViewUI',_super);
+	var __proto=LoginViewUI.prototype;
+	__proto.createChildren=function(){
+		laya.ui.Component.prototype.createChildren.call(this);
+		this.createView(LoginViewUI.uiView);
+	}
+
+	LoginViewUI.uiView={"type":"View","props":{"width":1280,"height":720},"child":[{"type":"HBox","props":{"width":300,"height":200,"centerY":0,"centerX":0,"anchorY":0.5,"anchorX":0.5},"child":[{"type":"Button","props":{"y":189,"var":"btn_login","skin":"comp/button.png","name":"btn_login","label":"登陆","centerX":0}},{"type":"TextInput","props":{"y":139,"var":"input_account","prompt":"请输入账号","pivotY":0.5,"pivotX":0.5,"name":"input_accountw","centerX":0,"bgColor":"#c0c0c0","align":"center"}}]}]};
+	return LoginViewUI;
 })(View)
 
 
@@ -39588,55 +39652,24 @@ var TextArea=(function(_super){
 })(TextInput)
 
 
-//class module.G_NIUNIU.NIUNIUView extends ui.G_NIUNIU.G_NIUNIUUI
-var NIUNIUView=(function(_super){
-	function NIUNIUView(){
-		NIUNIUView.__super.call(this);
+//class ui.Comm.AlertUI extends laya.ui.Dialog
+var AlertUI=(function(_super){
+	function AlertUI(){
+		this.lab_text=null;
+		AlertUI.__super.call(this);
 	}
 
-	__class(NIUNIUView,'module.G_NIUNIU.NIUNIUView',_super);
-	var __proto=NIUNIUView.prototype;
-	Laya.imps(__proto,{"module.Common.IUIBase":true})
-	__proto.onOpen=function(){
-		this.btn_back.on("click",this,this.onBtnBack);
+	__class(AlertUI,'ui.Comm.AlertUI',_super);
+	var __proto=AlertUI.prototype;
+	__proto.createChildren=function(){
+		View.regComponent("Text",Text);
+		laya.ui.Component.prototype.createChildren.call(this);
+		this.createView(AlertUI.uiView);
 	}
 
-	__proto.onClose=function(){
-		this.btn_back.off("click",this,this.onBtnBack);
-	}
-
-	__proto.onBtnBack=function(e){
-		UIManager.GetInstance().closeAll();
-		UIManager.GetInstance().showView("MainView");
-	}
-
-	return NIUNIUView;
-})(G_NIUNIUUI)
-
-
-//class module.Login.LoginView extends ui.Login.LoginViewUI
-var LoginView=(function(_super){
-	function LoginView(){
-		LoginView.__super.call(this);
-	}
-
-	__class(LoginView,'module.Login.LoginView',_super);
-	var __proto=LoginView.prototype;
-	Laya.imps(__proto,{"module.Common.IUIBase":true})
-	__proto.onBtnLogin=function(e){
-		Network.GetInstance().send("Login",{msgid:"rspLogin",account:this.input_account.text});
-	}
-
-	__proto.onOpen=function(){
-		this.btn_login.on("click",this,this.onBtnLogin);
-	}
-
-	__proto.onClose=function(){
-		this.btn_login.off("click",this,this.onBtnLogin);
-	}
-
-	return LoginView;
-})(LoginViewUI)
+	AlertUI.uiView={"type":"Dialog","props":{"width":1280,"height":720},"child":[{"type":"Image","props":{"y":288,"x":483,"width":312,"skin":"comp/bg.png","sizeGrid":"33,20,13,12","height":70}},{"type":"Text","props":{"y":323,"x":495,"width":288,"var":"lab_text","text":"提示","height":26,"fontSize":25,"color":"#000000","align":"center"}}]};
+	return AlertUI;
+})(Dialog)
 
 
 //class ui.Mainui.MainCreateRoomUI extends laya.ui.Dialog
@@ -39662,6 +39695,7 @@ var MainCreateRoomUI=(function(_super){
 //class ui.Mainui.MainJoinRoomUI extends laya.ui.Dialog
 var MainJoinRoomUI=(function(_super){
 	function MainJoinRoomUI(){
+		this.btn_close=null;
 		this.btn_1=null;
 		this.btn_2=null;
 		this.btn_3=null;
@@ -39674,6 +39708,8 @@ var MainJoinRoomUI=(function(_super){
 		this.btn_clean=null;
 		this.btn_0=null;
 		this.btn_delete=null;
+		this.btn_join=null;
+		this.input_text=null;
 		MainJoinRoomUI.__super.call(this);
 	}
 
@@ -39684,7 +39720,7 @@ var MainJoinRoomUI=(function(_super){
 		this.createView(MainJoinRoomUI.uiView);
 	}
 
-	MainJoinRoomUI.uiView={"type":"Dialog","props":{"width":1280,"height":720},"child":[{"type":"Image","props":{"y":172,"x":410,"width":482,"skin":"comp/bg.png","sizeGrid":"36,26,15,17","height":335}},{"type":"Button","props":{"y":176,"x":858,"skin":"comp/btn_close.png"}},{"type":"Button","props":{"y":301,"x":469,"var":"btn_1","skin":"comp/button.png","label":"1"}},{"type":"Button","props":{"y":300,"x":588,"var":"btn_2","skin":"comp/button.png","label":"2"}},{"type":"Button","props":{"y":301,"x":735,"var":"btn_3","skin":"comp/button.png","label":"3"}},{"type":"Button","props":{"y":343,"x":468,"var":"btn_4","skin":"comp/button.png","label":"4"}},{"type":"Button","props":{"y":341,"x":588,"var":"btn_5","skin":"comp/button.png","label":"5"}},{"type":"Button","props":{"y":343,"x":733,"var":"btn_6","skin":"comp/button.png","label":"6"}},{"type":"Button","props":{"y":382,"x":469,"var":"btn_7","skin":"comp/button.png","label":"7"}},{"type":"Button","props":{"y":380,"x":589,"var":"btn_8","skin":"comp/button.png","label":"8"}},{"type":"Button","props":{"y":382,"x":734,"var":"btn_9","skin":"comp/button.png","label":"9"}},{"type":"Button","props":{"y":422,"x":469,"var":"btn_clean","skin":"comp/button.png","label":"重输"}},{"type":"Button","props":{"y":420,"x":589,"var":"btn_0","skin":"comp/button.png","label":"0"}},{"type":"Button","props":{"y":422,"x":734,"var":"btn_delete","skin":"comp/button.png","label":"删除"}},{"type":"Label","props":{"y":174,"x":606,"text":"加入房间","fontSize":22}},{"type":"Label","props":{"y":230,"x":514,"width":270,"text":"000000","height":28,"fontSize":24,"color":"#000000","align":"center"}}]};
+	MainJoinRoomUI.uiView={"type":"Dialog","props":{"width":1280,"height":720},"child":[{"type":"Image","props":{"y":172,"x":410,"width":482,"skin":"comp/bg.png","sizeGrid":"36,26,15,17","height":335}},{"type":"Button","props":{"y":176,"x":858,"var":"btn_close","skin":"comp/btn_close.png"}},{"type":"Button","props":{"y":301,"x":469,"var":"btn_1","skin":"comp/button.png","label":"1"}},{"type":"Button","props":{"y":300,"x":588,"var":"btn_2","skin":"comp/button.png","label":"2"}},{"type":"Button","props":{"y":301,"x":735,"var":"btn_3","skin":"comp/button.png","label":"3"}},{"type":"Button","props":{"y":343,"x":468,"var":"btn_4","skin":"comp/button.png","label":"4"}},{"type":"Button","props":{"y":341,"x":588,"var":"btn_5","skin":"comp/button.png","label":"5"}},{"type":"Button","props":{"y":343,"x":733,"var":"btn_6","skin":"comp/button.png","label":"6"}},{"type":"Button","props":{"y":382,"x":469,"var":"btn_7","skin":"comp/button.png","label":"7"}},{"type":"Button","props":{"y":380,"x":589,"var":"btn_8","skin":"comp/button.png","label":"8"}},{"type":"Button","props":{"y":382,"x":734,"var":"btn_9","skin":"comp/button.png","label":"9"}},{"type":"Button","props":{"y":422,"x":469,"var":"btn_clean","skin":"comp/button.png","label":"重输"}},{"type":"Button","props":{"y":420,"x":589,"var":"btn_0","skin":"comp/button.png","label":"0"}},{"type":"Button","props":{"y":422,"x":734,"var":"btn_delete","skin":"comp/button.png","label":"删除"}},{"type":"Label","props":{"y":174,"x":606,"text":"加入房间","fontSize":22}},{"type":"Button","props":{"y":457,"x":593,"var":"btn_join","skin":"comp/button.png","label":"加入"}},{"type":"TextInput","props":{"y":229,"x":539,"width":222,"var":"input_text","text":"0","height":30,"fontSize":25,"align":"center"}}]};
 	return MainJoinRoomUI;
 })(Dialog)
 
@@ -39708,6 +39744,62 @@ var MsgboxUI=(function(_super){
 })(Dialog)
 
 
+//class module.G_NIUNIU.NIUNIUView extends ui.G_NIUNIU.G_NIUNIUUI
+var NIUNIUView=(function(_super){
+	function NIUNIUView(){
+		NIUNIUView.__super.call(this);
+	}
+
+	__class(NIUNIUView,'module.G_NIUNIU.NIUNIUView',_super);
+	var __proto=NIUNIUView.prototype;
+	Laya.imps(__proto,{"module.Common.IUIBase":true})
+	__proto.onOpen=function(param){
+		this.btn_back.on("click",this,this.onBtnBack);
+		this.btn_pos.on("click",this,this.onBtnPos);
+	}
+
+	__proto.onClose=function(){
+		this.btn_back.off("click",this,this.onBtnBack);
+		this.btn_pos.off("click",this,this.onBtnPos);
+	}
+
+	__proto.onBtnPos=function(e){
+		NIUNIUProxy.GetInstance().reqNiuNiuSetPos({'pos':'banker','target_seatidx':1});
+	}
+
+	__proto.onBtnBack=function(e){
+		NIUNIUProxy.GetInstance().reqNiuNiuLeave();
+	}
+
+	return NIUNIUView;
+})(G_NIUNIUUI)
+
+
+//class module.Login.LoginView extends ui.Login.LoginViewUI
+var LoginView=(function(_super){
+	function LoginView(){
+		LoginView.__super.call(this);
+	}
+
+	__class(LoginView,'module.Login.LoginView',_super);
+	var __proto=LoginView.prototype;
+	Laya.imps(__proto,{"module.Common.IUIBase":true})
+	__proto.onBtnLogin=function(e){
+		Network.GetInstance().send("Login",{msgid:"rspLogin",account:this.input_account.text});
+	}
+
+	__proto.onOpen=function(param){
+		this.btn_login.on("click",this,this.onBtnLogin);
+	}
+
+	__proto.onClose=function(){
+		this.btn_login.off("click",this,this.onBtnLogin);
+	}
+
+	return LoginView;
+})(LoginViewUI)
+
+
 //class module.Main.MainView extends ui.Mainui.MainuiUI
 var MainView=(function(_super){
 	function MainView(){
@@ -39717,7 +39809,7 @@ var MainView=(function(_super){
 	__class(MainView,'module.Main.MainView',_super);
 	var __proto=MainView.prototype;
 	Laya.imps(__proto,{"module.Common.IUIBase":true})
-	__proto.onOpen=function(){
+	__proto.onOpen=function(param){
 		this.btn_create.on("click",this,this.onBtnCreate);
 		this.btn_join.on("click",this,this.onBtnJoin);
 	}
@@ -39746,8 +39838,33 @@ var MJ_GDView=(function(_super){
 	}
 
 	__class(MJ_GDView,'module.MJ_GD.MJ_GDView',_super);
+	var __proto=MJ_GDView.prototype;
+	Laya.imps(__proto,{"module.Common.IUIBase":true})
+	__proto.onOpen=function(param){}
+	__proto.onClose=function(){}
 	return MJ_GDView;
 })(G_MJ_GDUI)
+
+
+//class module.Common.view.Alert extends ui.Comm.AlertUI
+var Alert=(function(_super){
+	function Alert(){
+		Alert.__super.call(this);
+	}
+
+	__class(Alert,'module.Common.view.Alert',_super);
+	var __proto=Alert.prototype;
+	Laya.imps(__proto,{"module.Common.IUIBase":true})
+	__proto.onOpen=function(param){
+		this.lab_text.text=param.text;
+		Laya.timer.once(2000,this,function(){
+			UIManager.GetInstance().hideView("Alert");
+		});
+	}
+
+	__proto.onClose=function(){}
+	return Alert;
+})(AlertUI)
 
 
 //class module.Main.MainCreateRoom extends ui.Mainui.MainCreateRoomUI
@@ -39759,7 +39876,7 @@ var MainCreateRoom=(function(_super){
 	__class(MainCreateRoom,'module.Main.MainCreateRoom',_super);
 	var __proto=MainCreateRoom.prototype;
 	Laya.imps(__proto,{"module.Common.IUIBase":true})
-	__proto.onOpen=function(){
+	__proto.onOpen=function(param){
 		this.btn_close.on("click",this,this.onBtnClose);
 		this.btn_create.on("click",this,this.onBtnCreate);
 	}
@@ -39792,13 +39909,29 @@ var MainJoinRoom=(function(_super){
 	__class(MainJoinRoom,'module.Main.MainJoinRoom',_super);
 	var __proto=MainJoinRoom.prototype;
 	Laya.imps(__proto,{"module.Common.IUIBase":true})
-	__proto.onOpen=function(){}
-	__proto.onClose=function(){}
+	__proto.onOpen=function(param){
+		this.btn_close.on("click",this,this.onBtnClose);
+		this.btn_join.on("click",this,this.onBtnJoin);
+	}
+
+	__proto.onClose=function(){
+		this.btn_close.off("click",this,this.onBtnClose);
+		this.btn_join.off("click",this,this.onBtnJoin);
+	}
+
+	__proto.onBtnJoin=function(e){
+		MainProxy.GetInstance().reqJoinRoom({'roomid':parseInt(this.input_text.text,10),'gameid':'NiuNiu'});
+	}
+
+	__proto.onBtnClose=function(e){
+		UIManager.GetInstance().hideView("MainJoinRoom");
+	}
+
 	return MainJoinRoom;
 })(MainJoinRoomUI)
 
 
-	Laya.__init([LoaderManager,EventDispatcher,Render,View,Browser,DrawText,WebGLContext2D,ShaderCompile,Timer,LocalStorage,GraphicAnimation,AtlasGrid]);
+	Laya.__init([EventDispatcher,LoaderManager,View,Browser,Render,DrawText,Timer,WebGLContext2D,ShaderCompile,GraphicAnimation,LocalStorage,AtlasGrid]);
 	/**LayaGameStart**/
 	new LayaSample();
 

@@ -13,7 +13,7 @@ package module.Main
 			
 		}
 
-		public function onOpen():void{
+		public function onOpen(param:Object):void{
 
 			this.btn_close.on(Event.CLICK,this,onBtnClose);
 			this.btn_create.on(Event.CLICK,this,onBtnCreate);

@@ -8,6 +8,7 @@ package module.Common
 	import module.Login.LoginProxy;
 	import module.Main.MainProxy;
 	import module.Common.GameConfig;
+	import module.G_NIUNIU.NIUNIUProxy;
 	/**
 		网络通讯
 	 */
@@ -64,6 +65,7 @@ package module.Common
 			var obj:Object = JSON.parse(msg as String);
 			LoginProxy.GetInstance().onMsg(obj);
 			MainProxy.GetInstance().onMsg(obj);
+			NIUNIUProxy.GetInstance().onMsg(obj);
         }
         private function closeHandler(e:Object= null):void
         {
