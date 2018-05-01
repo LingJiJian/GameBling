@@ -13,6 +13,7 @@ package module.G_NIUNIU
 		public function NIUNIUMgr(){
 			
 		}
+		
 	}
 
 }

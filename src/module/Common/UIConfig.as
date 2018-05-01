@@ -7,7 +7,7 @@ package module.Common
 	import laya.utils.ClassUtils;
 	import module.Main.MainCreateRoom;
 	import module.Main.MainJoinRoom;
-	import module.G_NIUNIU.NIUNIUView;
+	import module.G_NIUNIU.NiuNiuView;
 	import module.MJ_GD.MJ_GDView;
 	import module.Common.view.Alert;
 	
@@ -22,7 +22,7 @@ package module.Common
 			"MainView" 			:   {"class":MainView,"isDontDestroy":true},
 			"MainCreateRoom" 	: 	{"class":MainCreateRoom},
 			"MainJoinRoom" 		: 	{"class":MainJoinRoom},
-			"NIUNIUView"		:	{'class':NIUNIUView},
+			"NiuNiuView"		:	{'class':NiuNiuView},
 			"MJ_GDView"			:	{'class':MJ_GDView},
 			"Alert"				:   {'class':Alert}
 		};

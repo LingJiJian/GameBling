@@ -5,6 +5,7 @@
     import module.Common.Network;
     import module.Common.UIManager;
     import module.Common.GameConfig;
+    import module.Common.Util;
 
 	public class LayaSample {
 		

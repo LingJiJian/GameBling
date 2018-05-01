@@ -4,6 +4,7 @@ package module.G_NIUNIU
 	import module.Common.Network;
 	import module.Common.MsgIds;
 	import module.Common.UIManager;
+	import module.Common.Util;
 
 	public class NIUNIUProxy extends ProxyBase {
 		
@@ -46,7 +47,7 @@ package module.G_NIUNIU
 
 		public function rspNiuNiuUpdate(param:Object):void
 		{
-			trace(param);
+			Util.dump(param);
 		}
 
 		// public function reqNiuNiuSyncGame(param:Object):void 
@@ -56,7 +57,7 @@ package module.G_NIUNIU
 
 		public function rspNiuNiuSyncGame(param:Object):void
 		{
-			trace(param);
+			Util.dump(param);
 		}
 
 		public function reqNiuNiuLeave():void

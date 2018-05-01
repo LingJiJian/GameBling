@@ -27,9 +27,7 @@ package module.Main
 		public function rspCreateRoom(param:Object):void
 		{
 			UIManager.GetInstance().closeAll();
-			if(param['data']['gameid'] == "NiuNiu"){
-				UIManager.GetInstance().showView("NIUNIUView",param);
-			}
+			UIManager.GetInstance().showView(param['data']['gameid']+"View",param);
 		}
 
 		public function reqJoinRoom(param:Object):void
@@ -40,9 +38,7 @@ package module.Main
 		public function rspJoinRoom(param:Object):void
 		{
 			UIManager.GetInstance().closeAll();
-			if(param['data']['gameid'] == "NiuNiu"){
-				UIManager.GetInstance().showView("NIUNIUView",param);
-			}
+			UIManager.GetInstance().showView(param['data']['gameid']+"View",param);
 		}
 	}
 

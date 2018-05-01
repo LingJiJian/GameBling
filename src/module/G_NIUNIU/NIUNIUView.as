@@ -6,8 +6,8 @@ package module.G_NIUNIU
 	import module.Common.UIManager;
 	import module.G_NIUNIU.NIUNIUProxy;
 
-	public class NIUNIUView extends G_NIUNIUUI implements IUIBase {
-		public function NIUNIUView(){
+	public class NiuNiuView extends G_NIUNIUUI implements IUIBase {
+		public function NiuNiuView(){
 			
 		}
 
