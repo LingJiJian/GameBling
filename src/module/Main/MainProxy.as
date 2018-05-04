@@ -40,6 +40,16 @@ package module.Main
 			UIManager.GetInstance().closeAll();
 			UIManager.GetInstance().showView(param['data']['gameid']+"View",param);
 		}
+
+		public function reqLeaveRoom(param:Object):void
+		{
+			Network.GetInstance().send("Lobby",{msgid:MsgIds.Main_LeaveRoom,param:param}); 
+		}
+
+		public function rspLeaveRoom(param:Object):void
+		{
+			
+		}
 	}
 
 }

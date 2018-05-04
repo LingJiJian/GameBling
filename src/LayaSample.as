@@ -6,6 +6,8 @@
     import module.Common.UIManager;
     import module.Common.GameConfig;
     import module.Common.Util;
+    import laya.events.Event;
+    import laya.events.Keyboard;
 
 	public class LayaSample {
 		
@@ -21,6 +23,17 @@
         {
             UIManager.GetInstance().showView("LoginView");
             Network.GetInstance().connect(GameConfig.ip,GameConfig.port);
+
+            if(GameConfig.isDebug){
+                Laya.stage.on(Event.KEY_DOWN,this,onKeyDown);
+			}
+        }
+
+        private function onKeyDown(e:Event):void
+        {
+            if(GameConfig.isDebug && e.keyCode == Keyboard.BACKQUOTE){
+                UIManager.GetInstance().showView("DebugView");
+            }
         }
 	}
 }

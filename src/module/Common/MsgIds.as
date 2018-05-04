@@ -12,8 +12,9 @@ package module.Common
 		public static const NiuNiu_Deal:String = 'rspNiuNiuDeal';
 		public static const NiuNiu_Update:String = 'rspNiuNiuUpdate';
 		public static const NiuNiu_SyncGame:String = 'rspNiuNiuSyncGame';
+		public static const NiuNiu_Bet:String = 'rspNiuNiuBet';
 
-		
+		public static const Debug_Svr:String = 'rspSvrDebug';
 	}
 
 }

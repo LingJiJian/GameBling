@@ -30,16 +30,6 @@ package module.G_NIUNIU
 			UIManager.GetInstance().showView("Alert",{text:"上庄成功"});
 		}
 
-		public function reqNiuNiuDeal(param:Object):void 
-		{
-			Network.GetInstance().send("NiuNiu",{msgid:MsgIds.NiuNiu_Deal,param:param});
-		}
-
-		public function rspNiuNiuDeal(param:Object):void
-		{
-
-		}
-
 		// public function reqNiuNiuUpdate(param:Object):void 
 		// {
 		// 	Network.GetInstance().send("NiuNiu",{msgid:MsgIds.NiuNiu_Update,param:param});
@@ -60,16 +50,15 @@ package module.G_NIUNIU
 			Util.dump(param);
 		}
 
-		public function reqNiuNiuLeave():void
+		public function reqNiuNiuBet(param:Object):void
 		{
-
+			Network.GetInstance().send("NiuNiu",{msgid:MsgIds.NiuNiu_Bet,param:param});
 		}
 
-		public function rspNiuNiuLeave(param:Object):void
+		public function rspNiuNiuBet(param:Object):void
 		{
-			
+			Util.dump(param);
 		}
-
 	}
 
 }

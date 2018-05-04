@@ -10,8 +10,8 @@ package module.Common
 	import module.G_NIUNIU.NiuNiuView;
 	import module.MJ_GD.MJ_GDView;
 	import module.Common.view.Alert;
+	import module.Debug.DebugView;
 	
-
 	/**
 	 * UI配置
 	 */
@@ -24,7 +24,8 @@ package module.Common
 			"MainJoinRoom" 		: 	{"class":MainJoinRoom},
 			"NiuNiuView"		:	{'class':NiuNiuView},
 			"MJ_GDView"			:	{'class':MJ_GDView},
-			"Alert"				:   {'class':Alert}
+			"Alert"				:   {'class':Alert},
+			"DebugView"			:	{'class':DebugView}
 		};
 
 		public static function init():void{

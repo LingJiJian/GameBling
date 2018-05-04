@@ -12,6 +12,15 @@ package module.G_NIUNIU
 			return _instance;
 		}
 
+		//下注类型
+		public var betDefs:Object = { 
+				1:100,
+				2:500,
+				3:1000,
+				4:5000,
+				5:10000
+			};
+
 		public function NIUNIUData(){
 			
 		}

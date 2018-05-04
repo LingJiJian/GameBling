@@ -9,6 +9,8 @@ package module.Common
 	import module.Main.MainProxy;
 	import module.Common.GameConfig;
 	import module.G_NIUNIU.NIUNIUProxy;
+	import module.Common.UIManager;
+	import module.Money.MoneyProxy;
 	/**
 		网络通讯
 	 */
@@ -51,7 +53,7 @@ package module.Common
 				obj.module = module;
 				this.socket.send(JsonTool.getJsonString(obj));
 			}else{
-				trace("网络连接失败，请重试");
+				UIManager.GetInstance().showView("Alert",{text:"网络连接失败，请重试"});
 			}
 		}
 
@@ -66,14 +68,17 @@ package module.Common
 			LoginProxy.GetInstance().onMsg(obj);
 			MainProxy.GetInstance().onMsg(obj);
 			NIUNIUProxy.GetInstance().onMsg(obj);
+			MoneyProxy.GetInstance().onMsg(obj);
         }
         private function closeHandler(e:Object= null):void
         {
+			UIManager.GetInstance().showView("Alert",{text:"断开连接"});
             //关闭事件
 			trace("断开连接");
         }
         private function errorHandler(e:Object = null):void
         {
+			UIManager.GetInstance().showView("Alert",{text:"连接出错"});
             //连接出错
 			trace("连接出错");
         }
