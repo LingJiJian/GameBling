@@ -17,6 +17,7 @@ package module.G_NIUNIU
 	import laya.ui.Box;
 	import module.Common.view.Poker;
 	import laya.utils.Handler;
+	import module.Role.RoleMgr;
 
 	public class NiuNiuView extends G_NIUNIUUI implements IUIBase {
 
@@ -55,6 +56,7 @@ package module.G_NIUNIU
 			MyDispatcher.AddNotice(EventIds.NiuNiu_SetPos,this,_onSetPos);
 			MyDispatcher.AddNotice(EventIds.NiuNiu_Bet,this,_onBet);
 			MyDispatcher.AddNotice(EventIds.Main_LeaveRoom,this,_onLeaveRoom);
+			MyDispatcher.AddNotice(EventIds.Main_PersionJoin,this,_onPersionJoin);
 
 			for(var i:int=0;i<5;i++)
 			{
@@ -261,9 +263,21 @@ package module.G_NIUNIU
 		private function _onLeaveRoom(e):void
 		{
 			if(e.gameid == "NiuNiu"){
-				NIUNIUData.GetInstance().onClean();
-				UIManager.GetInstance().closeAll();
-				UIManager.GetInstance().showView("MainView");
+				//退出房间
+				if(e.persion.client_id == RoleMgr.GetInstance().role.client_id){
+					NIUNIUData.GetInstance().onClean();
+					UIManager.GetInstance().closeAll();
+					UIManager.GetInstance().showView("MainView");
+				}else{
+					this['icon'+e.persion.seatIdx].setData(null);
+				}
+			}
+		}
+
+		private function _onPersionJoin(e):void
+		{
+			if(e.gameid == "NiuNiu"){
+				 this['icon'+e.persion.seatIdx].setData(e.persion);
 			}
 		}
 	}

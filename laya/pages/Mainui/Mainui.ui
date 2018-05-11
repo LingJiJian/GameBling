@@ -2,7 +2,7 @@
     "x":0,
     "type":"View",
     "selectedBox":1,
-    "selecteID":3,
+    "selecteID":6,
     "props":{"width":1280,"sceneColor":"#817c7c","height":720},
     "nodeParent":-1,
     "label":"View",
@@ -41,7 +41,7 @@
         {
             "x":15,
             "type":"Button",
-            "props":{"y":129,"x":54,"var":"btn_sign","skin":"comp/button.png","label":"签到"},
+            "props":{"y":183,"x":43,"var":"btn_sign","skin":"comp/button.png","label":"签到"},
             "nodeParent":1,
             "label":"Button(btn_sign)",
             "isDirectory":false,
@@ -67,7 +67,7 @@
         {
             "x":15,
             "type":"Button",
-            "props":{"y":663,"x":544,"width":119,"var":"btn_join","skin":"comp/button.png","sizeGrid":"5,5,5,5","label":"加入房间","height":33},
+            "props":{"y":510,"x":366,"width":119,"var":"btn_join","skin":"comp/button.png","sizeGrid":"5,5,5,5","label":"加入房间","height":33},
             "nodeParent":1,
             "label":"Button(btn_join)",
             "isDirectory":false,
@@ -76,6 +76,32 @@
             "compId":6,
             "child":[
                 ]
+        },
+        {
+            "x":15,
+            "type":"Image",
+            "props":{"y":9,"x":21,"var":"head","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},
+            "nodeParent":1,
+            "label":"Image(head)",
+            "isOpen":true,
+            "isDirectory":true,
+            "isAniNode":true,
+            "hasChild":true,
+            "compId":7,
+            "child":[
+                {
+                    "x":30,
+                    "type":"Image",
+                    "props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"},
+                    "nodeParent":7,
+                    "label":"Image(icon)",
+                    "isDirectory":false,
+                    "isAniNode":true,
+                    "hasChild":false,
+                    "compId":8,
+                    "child":[
+                        ]
+                }]
         }],
     "animations":[
         {

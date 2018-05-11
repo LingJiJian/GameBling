@@ -2,8 +2,8 @@
     "x":0,
     "type":"View",
     "selectedBox":1,
-    "selecteID":30,
-    "props":{"width":1280,"sceneColor":"#cccccc","height":720},
+    "selecteID":53,
+    "props":{"width":1280,"sceneColor":"#000000","height":720},
     "nodeParent":-1,
     "label":"View",
     "isOpen":true,
@@ -161,13 +161,14 @@
             "props":{"y":55,"x":392,"var":"icon1","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},
             "nodeParent":1,
             "label":"Image(icon1)",
-            "isOpen":false,
+            "isOpen":true,
             "isDirectory":true,
             "isAniNode":true,
             "hasChild":true,
             "compId":23,
             "child":[
                 {
+                    "x":30,
                     "type":"Image",
                     "props":{"y":1,"x":1,"skin":"comp/headgril.png","name":"icon"},
                     "nodeParent":23,
@@ -566,7 +567,7 @@
         {
             "x":15,
             "type":"Text",
-            "props":{"y":26,"x":108,"width":192,"var":"lab_roomid","text":"房间ID:","height":34,"fontSize":25,"color":"#000000"},
+            "props":{"y":26,"x":127,"width":192,"var":"lab_roomid","text":"房间ID:","height":34,"fontSize":25,"color":"#ffffff"},
             "nodeParent":1,
             "label":"Text(lab_roomid)",
             "isDirectory":false,
@@ -599,6 +600,32 @@
             "isAniNode":true,
             "hasChild":false,
             "compId":56,
+            "child":[
+                ]
+        },
+        {
+            "x":15,
+            "type":"Text",
+            "props":{"y":602,"x":129,"var":"lab_nickname","text":"nickname","fontSize":24,"color":"#ffffff"},
+            "nodeParent":1,
+            "label":"Text(lab_nickname)",
+            "isDirectory":false,
+            "isAniNode":true,
+            "hasChild":false,
+            "compId":57,
+            "child":[
+                ]
+        },
+        {
+            "x":15,
+            "type":"Text",
+            "props":{"y":631,"x":127,"var":"lab_id","text":"ID:1000","fontSize":24,"color":"#ffffff"},
+            "nodeParent":1,
+            "label":"Text(lab_id)",
+            "isDirectory":false,
+            "isAniNode":true,
+            "hasChild":false,
+            "compId":58,
             "child":[
                 ]
         }],

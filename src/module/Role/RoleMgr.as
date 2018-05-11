@@ -11,15 +11,18 @@ package module.Role
 			return _instance;
 		}
 
-		public var baseInfo:Object;
+		public var role:Object;
 
 		public function RoleMgr(){
-			baseInfo = {
+			role = {
 				'id' : '',
 				'nickname' : '',
+				'level' : 0,
+				'coin' : 0,
+				'gold' : 0,
+				'client_id' : '',
 				'exp' : 0,
-				'vipexp' : 0,
-				'headicon' : ''
+				'vipexp' : 0
 			}
 		}
 
@@ -27,7 +30,7 @@ package module.Role
 		{
 			for(var key:int in param)
 			{
-				this.baseInfo[key] = param[key];
+				this.role[key] = param[key];
 			}
 		}
 	}

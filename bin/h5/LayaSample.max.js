@@ -472,6 +472,7 @@ var EventIds=(function(){
 	EventIds.NiuNiu_SetPos="NiuNiu_SetPos";
 	EventIds.NiuNiu_Bet='NiuNiu_Bet';
 	EventIds.Main_LeaveRoom='Main_LeaveRoom';
+	EventIds.Main_PersionJoin='Main_PersionJoin';
 	return EventIds;
 })()
 
@@ -540,6 +541,7 @@ var MsgIds=(function(){
 	MsgIds.Main_CreateRoom="rspCreateRoom";
 	MsgIds.Main_JoinRoom="rspJoinRoom";
 	MsgIds.Main_LeaveRoom="rspLeaveRoom";
+	MsgIds.Main_PersionJoin='rspPersionJoin';
 	MsgIds.NiuNiu_SetPos='rspNiuNiuSetPos';
 	MsgIds.NiuNiu_Deal='rspNiuNiuDeal';
 	MsgIds.NiuNiu_Update='rspNiuNiuUpdate';
@@ -893,7 +895,7 @@ var Network=(function(){
 		LoginProxy.GetInstance().onMsg(obj);
 		MainProxy.GetInstance().onMsg(obj);
 		NIUNIUProxy.GetInstance().onMsg(obj);
-		MoneyProxy.GetInstance().onMsg(obj);
+		module.Money.MoneyProxy.GetInstance().onMsg(obj);
 	}
 
 	__proto.closeHandler=function(e){
@@ -1127,53 +1129,20 @@ var NIUNIUData=(function(){
 })()
 
 
-//class module.Money.MoneyMgr
-var MoneyMgr=(function(){
-	function MoneyMgr(){
-		this._assets=null;
-		this._assets=new Object();
-	}
-
-	__class(MoneyMgr,'module.Money.MoneyMgr');
-	var __proto=MoneyMgr.prototype;
-	//获取资产
-	__proto.getAssets=function(type){
-		return this._assets[type];
-	}
-
-	__proto.setAssets=function(type,value){
-		this._assets[type]=value;
-	}
-
-	__proto.setAssetsData=function(param){
-		for(var type=0 in param){
-			this._assets[type]=param[type];
-		}
-	}
-
-	MoneyMgr.GetInstance=function(){
-		if(MoneyMgr._instance==null){
-			MoneyMgr._instance=new MoneyMgr();
-		}
-		return MoneyMgr._instance;
-	}
-
-	MoneyMgr._instance=null;
-	return MoneyMgr;
-})()
-
-
 // 角色管理器
 //class module.Role.RoleMgr
 var RoleMgr=(function(){
 	function RoleMgr(){
-		this.baseInfo=null;
-		this.baseInfo={
+		this.role=null;
+		this.role={
 			'id' :'',
 			'nickname' :'',
+			'level' :0,
+			'coin' :0,
+			'gold' :0,
+			'client_id' :'',
 			'exp' :0,
-			'vipexp' :0,
-			'headicon' :''
+			'vipexp' :0
 		}
 	}
 
@@ -1181,7 +1150,7 @@ var RoleMgr=(function(){
 	var __proto=RoleMgr.prototype;
 	__proto.setBaseData=function(param){
 		for(var key=0 in param){
-			this.baseInfo[key]=param[key];
+			this.role[key]=param[key];
 		}
 	}
 
@@ -24287,8 +24256,7 @@ var LoginProxy=(function(_super){
 	}
 
 	__proto.rspLogin=function(msg){
-		MoneyMgr.GetInstance().setAssetsData(msg.money);
-		RoleMgr.GetInstance().setBaseData(msg.account);
+		RoleMgr.GetInstance().setBaseData(msg.data);
 		UIManager.GetInstance().closeAll();
 		UIManager.GetInstance().showView("MainView");
 	}
@@ -24339,6 +24307,10 @@ var MainProxy=(function(_super){
 		MyDispatcher.Emit(EventIds.Main_LeaveRoom,param.data);
 	}
 
+	__proto.rspPersionJoin=function(param){
+		MyDispatcher.Emit(EventIds.Main_PersionJoin,param.data);
+	}
+
 	MainProxy.GetInstance=function(){
 		if(MainProxy._instance==null){
 			MainProxy._instance=new MainProxy();
@@ -24348,25 +24320,6 @@ var MainProxy=(function(_super){
 
 	MainProxy._instance=null;
 	return MainProxy;
-})(ProxyBase)
-
-
-//class module.Money.MoneyProxy extends module.Common.ProxyBase
-var MoneyProxy=(function(_super){
-	function MoneyProxy(){
-		MoneyProxy.__super.call(this);
-	}
-
-	__class(MoneyProxy,'module.Money.MoneyProxy',_super);
-	MoneyProxy.GetInstance=function(){
-		if(MoneyProxy._instance==null){
-			MoneyProxy._instance=new MoneyProxy();
-		}
-		return MoneyProxy._instance;
-	}
-
-	MoneyProxy._instance=null;
-	return MoneyProxy;
 })(ProxyBase)
 
 
@@ -39686,22 +39639,24 @@ var LoginViewUI=(function(_super){
 //class ui.Mainui.MainuiUI extends laya.ui.View
 var MainuiUI=(function(_super){
 	function MainuiUI(){
-		this.nickname=null;
-		this.id=null;
+		this.lab_nickname=null;
+		this.lab_id=null;
 		this.btn_sign=null;
 		this.btn_create=null;
 		this.btn_join=null;
+		this.head=null;
 		MainuiUI.__super.call(this);
 	}
 
 	__class(MainuiUI,'ui.Mainui.MainuiUI',_super);
 	var __proto=MainuiUI.prototype;
 	__proto.createChildren=function(){
+		View.regComponent("module.Common.view.PlayerHead",PlayerHead);
 		laya.ui.Component.prototype.createChildren.call(this);
 		this.createView(MainuiUI.uiView);
 	}
 
-	MainuiUI.uiView={"type":"View","props":{"width":1280,"height":720},"child":[{"type":"Label","props":{"y":8,"x":98,"var":"nickname","text":"nickname","fontSize":24,"color":"#ffffff","align":"center"}},{"type":"Label","props":{"y":42,"x":98,"var":"id","text":"ID:1000","fontSize":24,"color":"#ffffff","align":"center"}},{"type":"Button","props":{"y":129,"x":54,"var":"btn_sign","skin":"comp/button.png","label":"签到"}},{"type":"Button","props":{"y":270,"x":338,"width":176,"var":"btn_create","skin":"comp/button.png","sizeGrid":"5,5,5,5","label":"创建房间","height":166}},{"type":"Button","props":{"y":663,"x":544,"width":119,"var":"btn_join","skin":"comp/button.png","sizeGrid":"5,5,5,5","label":"加入房间","height":33}}]};
+	MainuiUI.uiView={"type":"View","props":{"width":1280,"height":720},"child":[{"type":"Label","props":{"y":8,"x":98,"var":"lab_nickname","text":"nickname","fontSize":24,"color":"#ffffff","align":"center"}},{"type":"Label","props":{"y":42,"x":98,"var":"lab_id","text":"ID:1000","fontSize":24,"color":"#ffffff","align":"center"}},{"type":"Button","props":{"y":183,"x":43,"var":"btn_sign","skin":"comp/button.png","label":"签到"}},{"type":"Button","props":{"y":270,"x":338,"width":176,"var":"btn_create","skin":"comp/button.png","sizeGrid":"5,5,5,5","label":"创建房间","height":166}},{"type":"Button","props":{"y":510,"x":366,"width":119,"var":"btn_join","skin":"comp/button.png","sizeGrid":"5,5,5,5","label":"加入房间","height":33}},{"type":"Image","props":{"y":9,"x":21,"var":"head","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]}]};
 	return MainuiUI;
 })(View)
 
@@ -40391,6 +40346,7 @@ var NiuNiuView=(function(_super){
 		MyDispatcher.AddNotice(EventIds.NiuNiu_SetPos,this,this._onSetPos);
 		MyDispatcher.AddNotice(EventIds.NiuNiu_Bet,this,this._onBet);
 		MyDispatcher.AddNotice(EventIds.Main_LeaveRoom,this,this._onLeaveRoom);
+		MyDispatcher.AddNotice(EventIds.Main_PersionJoin,this,this._onPersionJoin);
 		for(var i=0;i<5;i++){
 			this['btn_bet'+(i+1)].on("click",this,this.onBtnBet);
 		}
@@ -40409,6 +40365,7 @@ var NiuNiuView=(function(_super){
 		MyDispatcher.RemoveNotice(EventIds.NiuNiu_SetPos,this,this._onSetPos);
 		MyDispatcher.RemoveNotice(EventIds.NiuNiu_Bet,this,this._onBet);
 		MyDispatcher.RemoveNotice(EventIds.Main_LeaveRoom,this,this._onLeaveRoom);
+		MyDispatcher.RemoveNotice(EventIds.Main_PersionJoin,this,this._onPersionJoin);
 	}
 
 	__proto.onBtnBet=function(e){
@@ -40555,6 +40512,11 @@ var NiuNiuView=(function(_super){
 		}
 	}
 
+	__proto._onPersionJoin=function(e){
+		if(e.gameid=="NiuNiu"){}
+			Util.dump(e);
+	}
+
 	return NiuNiuView;
 })(G_NIUNIUUI)
 
@@ -40596,6 +40558,8 @@ var MainView=(function(_super){
 	__proto.onOpen=function(param){
 		this.btn_create.on("click",this,this.onBtnCreate);
 		this.btn_join.on("click",this,this.onBtnJoin);
+		this.lab_id.text='ID:'+RoleMgr.GetInstance().role.id;
+		this.lab_nickname.text=RoleMgr.GetInstance().role.nickname;
 	}
 
 	__proto.onClose=function(){
@@ -40743,7 +40707,7 @@ var MainJoinRoom=(function(_super){
 })(MainJoinRoomUI)
 
 
-	Laya.__init([EventDispatcher,LoaderManager,Timer,View,Browser,Render,DrawText,WebGLContext2D,ShaderCompile,GraphicAnimation,LocalStorage,AtlasGrid]);
+	Laya.__init([LoaderManager,EventDispatcher,Timer,View,Browser,Render,DrawText,WebGLContext2D,ShaderCompile,GraphicAnimation,LocalStorage,AtlasGrid]);
 	/**LayaGameStart**/
 	new LayaSample();
 

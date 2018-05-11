@@ -7,6 +7,7 @@ package module.Login
 	import module.Money.MoneyMgr;
 	import module.Role.RoleMgr;
 	import module.Common.MyDispatcher;
+	import module.Common.Util;
 
 	public class LoginProxy extends ProxyBase {
 
@@ -28,8 +29,7 @@ package module.Login
 		
 		public function rspLogin(msg:Object):void{
 
-			MoneyMgr.GetInstance().setAssetsData(msg.money);
-			RoleMgr.GetInstance().setBaseData(msg.account);
+			RoleMgr.GetInstance().setBaseData(msg.data);
 
 			UIManager.GetInstance().closeAll();
 			UIManager.GetInstance().showView("MainView");
