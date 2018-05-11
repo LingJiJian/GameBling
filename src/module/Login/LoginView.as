@@ -5,6 +5,9 @@ package module.Login
 	import module.Common.Network;
 	import module.Common.IUIBase;
 	import module.Common.MsgIds;
+	import laya.events.EventDispatcher;
+	import module.Login.LoginProxy;
+	import module.Common.MyDispatcher;
 
 	public class LoginView extends LoginViewUI implements IUIBase
 	{
@@ -14,7 +17,7 @@ package module.Login
 		}
 		
 		private function onBtnLogin(e:Event):void{
-			Network.GetInstance().send("Login",{msgid:MsgIds.Login_Login,account:this.input_account.text});
+			LoginProxy.GetInstance().reqLogin(this.input_account.text);
 		}
 
 		public function onOpen(param:Object):void{
@@ -23,6 +26,7 @@ package module.Login
 
 		public function onClose():void{
 			this.btn_login.off(Event.CLICK,this,onBtnLogin);
+
 		}
 	}
 

@@ -207,6 +207,7 @@ var Laya=window.Laya=(function(window,document){
 	var __un=Laya.un,__uns=Laya.uns,__static=Laya.static,__class=Laya.class,__getset=Laya.getset,__newvec=Laya.__newvec;
 Laya.interface('laya.ui.IItem');
 Laya.interface('laya.ui.ISelect');
+Laya.interface('module.Common.IData');
 Laya.interface('laya.runtime.IMarket');
 Laya.interface('laya.filters.IFilter');
 Laya.interface('module.Common.IUIBase');
@@ -435,7 +436,9 @@ var ___Laya=(function(){
 var LayaSample=(function(){
 	function LayaSample(){
 		Laya.init(1280,720,WebGL);
-		Laya.loader.load("res/atlas/comp.atlas",Handler.create(this,this.onLoad));
+		Laya.loader.load([
+		"res/atlas/comp.atlas",
+		'res/atlas/poker.atlas'],Handler.create(this,this.onLoad));
 		console.log("初始化成功");
 	}
 
@@ -449,6 +452,7 @@ var LayaSample=(function(){
 		}
 	}
 
+	// Laya.stage.addChild(poker);
 	__proto.onKeyDown=function(e){
 		if(GameConfig.isDebug && e.keyCode==192){
 			UIManager.GetInstance().showView("DebugView");
@@ -456,6 +460,53 @@ var LayaSample=(function(){
 	}
 
 	return LayaSample;
+})()
+
+
+//class module.Common.EventIds
+var EventIds=(function(){
+	function EventIds(){}
+	__class(EventIds,'module.Common.EventIds');
+	EventIds.NiuNiu_Update="NiuNiu_Update";
+	EventIds.NiuNiu_SyncGame="NiuNiu_SyncGame";
+	EventIds.NiuNiu_SetPos="NiuNiu_SetPos";
+	EventIds.NiuNiu_Bet='NiuNiu_Bet';
+	EventIds.Main_LeaveRoom='Main_LeaveRoom';
+	return EventIds;
+})()
+
+
+// 工厂方法
+//class module.Common.FactoryMgr
+var FactoryMgr=(function(){
+	function FactoryMgr(){}
+	__class(FactoryMgr,'module.Common.FactoryMgr');
+	var __proto=FactoryMgr.prototype;
+	__proto.createPoker=function(num,isBack){
+		var poker=new Poker();
+		poker.setData(num,isBack);
+		return poker;
+	}
+
+	__proto.createJetton=function(param){
+		var jetton=new Jetton();
+		jetton.setData(param.num);
+		return jetton;
+	}
+
+	__proto.createMajiang=function(){
+		return null;
+	}
+
+	FactoryMgr.GetInstance=function(){
+		if(FactoryMgr._instance==null){
+			FactoryMgr._instance=new FactoryMgr();
+		}
+		return FactoryMgr._instance;
+	}
+
+	FactoryMgr._instance=null;
+	return FactoryMgr;
 })()
 
 
@@ -471,6 +522,9 @@ var GameConfig=(function(){
 			"NiuNiu" :{'id':1},
 			"MJ_GD" :{'id':2},
 			"PokerDZ" :{'id':3}
+			};},'assetTypes',function(){return this.assetTypes={
+			'Coin' :1,
+			'Gold' :2
 	};}
 
 	]);
@@ -490,229 +544,9 @@ var MsgIds=(function(){
 	MsgIds.NiuNiu_Deal='rspNiuNiuDeal';
 	MsgIds.NiuNiu_Update='rspNiuNiuUpdate';
 	MsgIds.NiuNiu_SyncGame='rspNiuNiuSyncGame';
+	MsgIds.NiuNiu_Bet='rspNiuNiuBet';
 	MsgIds.Debug_Svr='rspSvrDebug';
 	return MsgIds;
-})()
-
-
-/**
-网络通讯
-*/
-//class module.Common.Network
-var Network=(function(){
-	function Network(){
-		this.socket=null;
-		this.byte=null;
-		this.byte=new Byte();
-		this.byte.endian="littleEndian";
-		this.socket=new Socket();
-		this.socket.endian="littleEndian";
-		this.socket.on("open",this,this.openHandler);
-		this.socket.on("message",this,this.receiveHandler);
-		this.socket.on("close",this,this.closeHandler);
-		this.socket.on("error",this,this.errorHandler);
-	}
-
-	__class(Network,'module.Common.Network');
-	var __proto=Network.prototype;
-	__proto.connect=function(ip,port){
-		this.socket.close();
-		this.socket.connectByUrl("ws://"+ip+":"+port);
-	}
-
-	//建立连接；
-	__proto.send=function(module,obj){
-		if(this.socket.connected){
-			obj.module=module;
-			this.socket.send(JsonTool.getJsonString(obj));
-			}else{
-			UIManager.GetInstance().showView("Alert",{text:"网络连接失败，请重试"});
-		}
-	}
-
-	__proto.openHandler=function(event){
-		console.log("连接成功");
-	}
-
-	__proto.receiveHandler=function(msg){
-		var obj=JSON.parse(msg);
-		LoginProxy.GetInstance().onMsg(obj);
-		MainProxy.GetInstance().onMsg(obj);
-		NIUNIUProxy.GetInstance().onMsg(obj);
-	}
-
-	__proto.closeHandler=function(e){
-		console.log("断开连接");
-	}
-
-	__proto.errorHandler=function(e){
-		console.log("连接出错");
-	}
-
-	Network.GetInstance=function(){
-		if(Network._instance==null){
-			Network._instance=new Network();
-		}
-		return Network._instance;
-	}
-
-	Network._instance=null;
-	return Network;
-})()
-
-
-//class module.Common.ProxyBase
-var ProxyBase=(function(){
-	function ProxyBase(){
-		this.isAlertError=true;
-	}
-
-	__class(ProxyBase,'module.Common.ProxyBase');
-	var __proto=ProxyBase.prototype;
-	__proto.onMsg=function(msg){
-		if(this.hasOwnProperty(msg['msgid'])){
-			if(msg['ret']==0){
-				this[msg['msgid']](msg);
-				}else{
-				if(this.isAlertError){
-					UIManager.GetInstance().showView("Alert",{text:msg['msg']});
-				}
-			}
-		}
-	}
-
-	return ProxyBase;
-})()
-
-
-/**
-*UI配置
-*/
-//class module.Common.UIConfig
-var UIConfig$1=(function(){
-	function UIConfig(){}
-	__class(UIConfig,'module.Common.UIConfig',null,'UIConfig$1');
-	UIConfig.init=function(){
-		for (var key in UIConfig.viewDefs){
-			ClassUtils.regClass(key,UIConfig.viewDefs[key].class);
-		}
-	}
-
-	UIConfig.getView=function(viewId){
-		var instance=ClassUtils.getInstance(viewId);
-		instance.name=viewId;
-		return instance;
-	}
-
-	__static(UIConfig,
-	['viewDefs',function(){return this.viewDefs={
-			"LoginView" :{"class":LoginView},
-			"MainView" :{"class":MainView,"isDontDestroy":true},
-			"MainCreateRoom" :{"class":MainCreateRoom},
-			"MainJoinRoom" :{"class":MainJoinRoom},
-			"NiuNiuView" :{'class':NiuNiuView},
-			"MJ_GDView" :{'class':MJ_GDView},
-			"Alert" :{'class':Alert},
-			"DebugView" :{'class':DebugView}
-	};}
-
-	]);
-	return UIConfig;
-})()
-
-
-//class module.Common.UIManager
-var UIManager=(function(){
-	function UIManager(){
-		this._views=null;
-		this._views=new Dictionary();
-		UIConfig$1.init();
-	}
-
-	__class(UIManager,'module.Common.UIManager');
-	var __proto=UIManager.prototype;
-	__proto.isShowing=function(viewId){
-		return this._views[viewId] !=null &&
-		this._views[viewId].view !=null &&
-		Laya.stage.getChildByName(viewId)!=null;
-	}
-
-	__proto.showView=function(viewId,param){
-		var child=Laya.stage.getChildByName(viewId);
-		var viewRef=this.getViewRef(viewId);
-		if(child==null){
-			if(viewRef.view==null){
-				var view=UIConfig$1.getView(viewId);
-				viewRef.view=view;
-			}
-			viewRef.view.onOpen(param);
-			if((viewRef.view instanceof laya.ui.Dialog )){
-				viewRef.view.show();
-				}else{
-				Laya.stage.addChild(viewRef.view);
-			}
-			}else{
-			viewRef.view.onOpen(param);
-			if((viewRef.view instanceof laya.ui.Dialog )){
-				viewRef.view.show();
-				}else{
-				Laya.stage.setChildIndex(child,0);
-			}
-		}
-	}
-
-	__proto.hideView=function(viewId){
-		var viewRef=this.getViewRef(viewId);
-		if (viewRef.view !=null){
-			viewRef.view.onClose();
-			if((viewRef.view instanceof laya.ui.Dialog )){
-				viewRef.view.close();
-				}else{
-				Laya.stage.removeChild(viewRef.view);
-			}
-		}
-		if(!viewRef.isDontDestroy){
-			viewRef.view=null;
-		}
-	}
-
-	__proto.closeAll=function(){
-		for(var key in this._views){
-			this.hideView(key);
-		}
-	}
-
-	__proto.getViewRef=function(viewId){
-		var viewRef=this._views[viewId];
-		if(viewRef==null){
-			viewRef=new Object();
-			viewRef.viewId=viewId;
-			this._views[viewId]=viewRef;
-		}
-		return this._views[viewId];
-	}
-
-	UIManager.GetInstance=function(){
-		if(UIManager._instance==null){
-			UIManager._instance=new UIManager();
-		}
-		return UIManager._instance;
-	}
-
-	UIManager._instance=null;
-	return UIManager;
-})()
-
-
-//class module.Common.Util
-var Util=(function(){
-	function Util(){}
-	__class(Util,'module.Common.Util');
-	Util.dump=function(obj){
-		console.log(JsonTool.getJsonString(obj));
-	}
-
-	return Util;
 })()
 
 
@@ -1015,11 +849,213 @@ var Handler=(function(){
 })()
 
 
+/**
+网络通讯
+*/
+//class module.Common.Network
+var Network=(function(){
+	function Network(){
+		this.socket=null;
+		this.byte=null;
+		this.byte=new Byte();
+		this.byte.endian="littleEndian";
+		this.socket=new Socket();
+		this.socket.endian="littleEndian";
+		this.socket.on("open",this,this.openHandler);
+		this.socket.on("message",this,this.receiveHandler);
+		this.socket.on("close",this,this.closeHandler);
+		this.socket.on("error",this,this.errorHandler);
+	}
+
+	__class(Network,'module.Common.Network');
+	var __proto=Network.prototype;
+	__proto.connect=function(ip,port){
+		this.socket.close();
+		this.socket.connectByUrl("ws://"+ip+":"+port);
+	}
+
+	//建立连接；
+	__proto.send=function(module,obj){
+		if(this.socket.connected){
+			obj.module=module;
+			this.socket.send(JsonTool.getJsonString(obj));
+			}else{
+			UIManager.GetInstance().showView("Alert",{text:"网络连接失败，请重试"});
+		}
+	}
+
+	__proto.openHandler=function(event){
+		console.log("连接成功");
+	}
+
+	__proto.receiveHandler=function(msg){
+		var obj=JSON.parse(msg);
+		LoginProxy.GetInstance().onMsg(obj);
+		MainProxy.GetInstance().onMsg(obj);
+		NIUNIUProxy.GetInstance().onMsg(obj);
+		MoneyProxy.GetInstance().onMsg(obj);
+	}
+
+	__proto.closeHandler=function(e){
+		UIManager.GetInstance().showView("Alert",{text:"断开连接"});
+		console.log("断开连接");
+	}
+
+	__proto.errorHandler=function(e){
+		UIManager.GetInstance().showView("Alert",{text:"连接出错"});
+		console.log("连接出错");
+	}
+
+	Network.GetInstance=function(){
+		if(Network._instance==null){
+			Network._instance=new Network();
+		}
+		return Network._instance;
+	}
+
+	Network._instance=null;
+	return Network;
+})()
+
+
+/**
+*UI配置
+*/
+//class module.Common.UIConfig
+var UIConfig$1=(function(){
+	function UIConfig(){}
+	__class(UIConfig,'module.Common.UIConfig',null,'UIConfig$1');
+	UIConfig.init=function(){
+		for (var key in UIConfig.viewDefs){
+			ClassUtils.regClass(key,UIConfig.viewDefs[key].class);
+		}
+	}
+
+	UIConfig.getView=function(viewId){
+		var instance=ClassUtils.getInstance(viewId);
+		instance.name=viewId;
+		return instance;
+	}
+
+	__static(UIConfig,
+	['viewDefs',function(){return this.viewDefs={
+			"LoginView" :{"class":LoginView},
+			"MainView" :{"class":MainView,"isDontDestroy":true},
+			"MainCreateRoom" :{"class":MainCreateRoom},
+			"MainJoinRoom" :{"class":MainJoinRoom},
+			"NiuNiuView" :{'class':NiuNiuView},
+			"MJ_GDView" :{'class':MJ_GDView},
+			"Alert" :{'class':Alert},
+			"DebugView" :{'class':DebugView}
+	};}
+
+	]);
+	return UIConfig;
+})()
+
+
+//class module.Common.UIManager
+var UIManager=(function(){
+	function UIManager(){
+		this._views=null;
+		this._views=new Dictionary();
+		UIConfig$1.init();
+	}
+
+	__class(UIManager,'module.Common.UIManager');
+	var __proto=UIManager.prototype;
+	__proto.isShowing=function(viewId){
+		return this._views[viewId] !=null &&
+		this._views[viewId].view !=null &&
+		Laya.stage.getChildByName(viewId)!=null;
+	}
+
+	__proto.showView=function(viewId,param){
+		var child=Laya.stage.getChildByName(viewId);
+		var viewRef=this.getViewRef(viewId);
+		if(child==null){
+			if(viewRef.view==null){
+				var view=UIConfig$1.getView(viewId);
+				viewRef.view=view;
+			}
+			viewRef.view.onOpen(param);
+			if((viewRef.view instanceof laya.ui.Dialog )){
+				viewRef.view.show();
+				}else{
+				Laya.stage.addChild(viewRef.view);
+			}
+			}else{
+			viewRef.view.onOpen(param);
+			if((viewRef.view instanceof laya.ui.Dialog )){
+				viewRef.view.show();
+				}else{
+				Laya.stage.setChildIndex(child,0);
+			}
+		}
+	}
+
+	__proto.hideView=function(viewId){
+		var viewRef=this.getViewRef(viewId);
+		if (viewRef.view !=null){
+			viewRef.view.onClose();
+			if((viewRef.view instanceof laya.ui.Dialog )){
+				viewRef.view.close();
+				}else{
+				Laya.stage.removeChild(viewRef.view);
+			}
+		}
+		if(!viewRef.isDontDestroy){
+			viewRef.view=null;
+		}
+	}
+
+	__proto.closeAll=function(){
+		for(var key in this._views){
+			this.hideView(key);
+		}
+	}
+
+	__proto.getViewRef=function(viewId){
+		var viewRef=this._views[viewId];
+		if(viewRef==null){
+			viewRef=new Object();
+			viewRef.viewId=viewId;
+			this._views[viewId]=viewRef;
+		}
+		return this._views[viewId];
+	}
+
+	UIManager.GetInstance=function(){
+		if(UIManager._instance==null){
+			UIManager._instance=new UIManager();
+		}
+		return UIManager._instance;
+	}
+
+	UIManager._instance=null;
+	return UIManager;
+})()
+
+
+//class module.Common.Util
+var Util=(function(){
+	function Util(){}
+	__class(Util,'module.Common.Util');
+	Util.dump=function(obj){
+		console.log(JsonTool.getJsonString(obj));
+	}
+
+	return Util;
+})()
+
+
 //class module.Debug.DebugMgr
 var DebugMgr=(function(){
 	function DebugMgr(){
 		this.debugArr=null;
-		this.debugArr=[{title:"服务端调试",data:'注入代码'}];
+		this.debugArr=[
+		{title:"服务端调试",data:'注入代码'},
+		{title:'测试动画',data:''},];
 	}
 
 	__class(DebugMgr,'module.Debug.DebugMgr');
@@ -1054,6 +1090,110 @@ var DebugProxy=(function(){
 
 	DebugProxy._instance=null;
 	return DebugProxy;
+})()
+
+
+//class module.G_NIUNIU.NIUNIUData
+var NIUNIUData=(function(){
+	function NIUNIUData(){
+		//下注类型
+		this.betDefs={
+			1:100,
+			2:500,
+			3:1000,
+			4:5000,
+			5:10000
+		};
+		// 设置房间数据
+		this.room=null;
+	}
+
+	__class(NIUNIUData,'module.G_NIUNIU.NIUNIUData');
+	var __proto=NIUNIUData.prototype;
+	Laya.imps(__proto,{"module.Common.IData":true})
+	__proto.onClean=function(){
+		this.room=null;
+	}
+
+	NIUNIUData.GetInstance=function(){
+		if(NIUNIUData._instance==null){
+			NIUNIUData._instance=new NIUNIUData();
+		}
+		return NIUNIUData._instance;
+	}
+
+	NIUNIUData._instance=null;
+	return NIUNIUData;
+})()
+
+
+//class module.Money.MoneyMgr
+var MoneyMgr=(function(){
+	function MoneyMgr(){
+		this._assets=null;
+		this._assets=new Object();
+	}
+
+	__class(MoneyMgr,'module.Money.MoneyMgr');
+	var __proto=MoneyMgr.prototype;
+	//获取资产
+	__proto.getAssets=function(type){
+		return this._assets[type];
+	}
+
+	__proto.setAssets=function(type,value){
+		this._assets[type]=value;
+	}
+
+	__proto.setAssetsData=function(param){
+		for(var type=0 in param){
+			this._assets[type]=param[type];
+		}
+	}
+
+	MoneyMgr.GetInstance=function(){
+		if(MoneyMgr._instance==null){
+			MoneyMgr._instance=new MoneyMgr();
+		}
+		return MoneyMgr._instance;
+	}
+
+	MoneyMgr._instance=null;
+	return MoneyMgr;
+})()
+
+
+// 角色管理器
+//class module.Role.RoleMgr
+var RoleMgr=(function(){
+	function RoleMgr(){
+		this.baseInfo=null;
+		this.baseInfo={
+			'id' :'',
+			'nickname' :'',
+			'exp' :0,
+			'vipexp' :0,
+			'headicon' :''
+		}
+	}
+
+	__class(RoleMgr,'module.Role.RoleMgr');
+	var __proto=RoleMgr.prototype;
+	__proto.setBaseData=function(param){
+		for(var key=0 in param){
+			this.baseInfo[key]=param[key];
+		}
+	}
+
+	RoleMgr.GetInstance=function(){
+		if(RoleMgr._instance==null){
+			RoleMgr._instance=new RoleMgr();
+		}
+		return RoleMgr._instance;
+	}
+
+	RoleMgr._instance=null;
+	return RoleMgr;
 })()
 
 
@@ -16046,49 +16186,55 @@ var UIConfig=(function(){
 })()
 
 
-//class module.G_NIUNIU.NIUNIUProxy extends module.Common.ProxyBase
-var NIUNIUProxy=(function(_super){
-	function NIUNIUProxy(){
-		NIUNIUProxy.__super.call(this);
+//class module.Common.MyDispatcher extends laya.events.EventDispatcher
+var MyDispatcher=(function(_super){
+	function MyDispatcher(){
+		MyDispatcher.__super.call(this);;
 	}
 
-	__class(NIUNIUProxy,'module.G_NIUNIU.NIUNIUProxy',_super);
-	var __proto=NIUNIUProxy.prototype;
-	__proto.reqNiuNiuSetPos=function(param){
-		Network.GetInstance().send("NiuNiu",{msgid:'rspNiuNiuSetPos',param:param});
+	__class(MyDispatcher,'module.Common.MyDispatcher',_super);
+	MyDispatcher.Emit=function(eventName,argv){
+		module.Common.MyDispatcher.eventDispatcher.event(eventName,argv);
 	}
 
-	__proto.rspNiuNiuSetPos=function(param){
-		UIManager.GetInstance().showView("Alert",{text:"上庄成功"});
+	MyDispatcher.AddNotice=function(eventName,caller,listener,arg){
+		module.Common.MyDispatcher.eventDispatcher.on(eventName,caller,listener,(arg==null)?null:arg);
 	}
 
-	__proto.reqNiuNiuDeal=function(param){
-		Network.GetInstance().send("NiuNiu",{msgid:'rspNiuNiuDeal',param:param});
+	MyDispatcher.RemoveNotice=function(eventName,caller,listener){
+		module.Common.MyDispatcher.eventDispatcher.off(eventName,caller,listener);
 	}
 
-	__proto.rspNiuNiuDeal=function(param){}
-	// }
-	__proto.rspNiuNiuUpdate=function(param){
-		Util.dump(param);
+	__static(MyDispatcher,
+	['eventDispatcher',function(){return this.eventDispatcher=new EventDispatcher();}
+	]);
+	return MyDispatcher;
+})(EventDispatcher)
+
+
+//class module.Common.ProxyBase extends laya.events.EventDispatcher
+var ProxyBase=(function(_super){
+	function ProxyBase(){
+		this.isAlertError=true;
+		ProxyBase.__super.call(this);
 	}
 
-	// }
-	__proto.rspNiuNiuSyncGame=function(param){
-		Util.dump(param);
-	}
-
-	__proto.reqNiuNiuLeave=function(){}
-	__proto.rspNiuNiuLeave=function(param){}
-	NIUNIUProxy.GetInstance=function(){
-		if(NIUNIUProxy._instance==null){
-			NIUNIUProxy._instance=new NIUNIUProxy();
+	__class(ProxyBase,'module.Common.ProxyBase',_super);
+	var __proto=ProxyBase.prototype;
+	__proto.onMsg=function(msg){
+		if(this.hasOwnProperty(msg['msgid'])){
+			if(msg['ret']==0){
+				this[msg['msgid']](msg);
+				}else{
+				if(this.isAlertError){
+					UIManager.GetInstance().showView("Alert",{text:msg['msg']});
+				}
+			}
 		}
-		return NIUNIUProxy._instance;
 	}
 
-	NIUNIUProxy._instance=null;
-	return NIUNIUProxy;
-})(ProxyBase)
+	return ProxyBase;
+})(EventDispatcher)
 
 
 /**
@@ -16649,73 +16795,6 @@ var Node=(function(_super){
 	Node.MOUSEENABLE=0x2;
 	return Node;
 })(EventDispatcher)
-
-
-//class module.Login.LoginProxy extends module.Common.ProxyBase
-var LoginProxy=(function(_super){
-	function LoginProxy(){
-		LoginProxy.__super.call(this);
-	}
-
-	__class(LoginProxy,'module.Login.LoginProxy',_super);
-	var __proto=LoginProxy.prototype;
-	__proto.reqLogin=function(account){
-		Network.GetInstance().send("Login",{msgid:"rspLogin",account:account});
-	}
-
-	__proto.rspLogin=function(msg){
-		UIManager.GetInstance().closeAll();
-		UIManager.GetInstance().showView("MainView");
-	}
-
-	LoginProxy.GetInstance=function(){
-		if(LoginProxy._instance==null){
-			LoginProxy._instance=new LoginProxy();
-		}
-		return LoginProxy._instance;
-	}
-
-	LoginProxy._instance=null;
-	return LoginProxy;
-})(ProxyBase)
-
-
-//class module.Main.MainProxy extends module.Common.ProxyBase
-var MainProxy=(function(_super){
-	function MainProxy(){
-		MainProxy.__super.call(this);
-	}
-
-	__class(MainProxy,'module.Main.MainProxy',_super);
-	var __proto=MainProxy.prototype;
-	__proto.reqCreateRoom=function(param){
-		Network.GetInstance().send("Lobby",{msgid:"rspCreateRoom",param:param});
-	}
-
-	__proto.rspCreateRoom=function(param){
-		UIManager.GetInstance().closeAll();
-		UIManager.GetInstance().showView(param['data']['gameid']+"View",param);
-	}
-
-	__proto.reqJoinRoom=function(param){
-		Network.GetInstance().send("Lobby",{msgid:"rspJoinRoom",param:param});
-	}
-
-	__proto.rspJoinRoom=function(param){
-		UIManager.GetInstance().closeAll();
-		UIManager.GetInstance().showView(param['data']['gameid']+"View",param);
-	}
-
-	MainProxy.GetInstance=function(){
-		if(MainProxy._instance==null){
-			MainProxy._instance=new MainProxy();
-		}
-		return MainProxy._instance;
-	}
-
-	MainProxy._instance=null;
-	return MainProxy;
-})(ProxyBase)
 
 
 /**
@@ -24147,6 +24226,150 @@ var Sprite=(function(_super){
 })(Node)
 
 
+//class module.G_NIUNIU.NIUNIUProxy extends module.Common.ProxyBase
+var NIUNIUProxy=(function(_super){
+	function NIUNIUProxy(){
+		NIUNIUProxy.__super.call(this);
+	}
+
+	__class(NIUNIUProxy,'module.G_NIUNIU.NIUNIUProxy',_super);
+	var __proto=NIUNIUProxy.prototype;
+	__proto.reqNiuNiuSetPos=function(param){
+		Network.GetInstance().send("NiuNiu",{msgid:'rspNiuNiuSetPos',param:param});
+	}
+
+	__proto.rspNiuNiuSetPos=function(param){
+		UIManager.GetInstance().showView("Alert",{text:"上庄成功"});
+		MyDispatcher.Emit(EventIds.NiuNiu_SetPos,param);
+	}
+
+	// }
+	__proto.rspNiuNiuUpdate=function(param){
+		MyDispatcher.Emit(EventIds.NiuNiu_Update,param);
+	}
+
+	// }
+	__proto.rspNiuNiuSyncGame=function(param){
+		MyDispatcher.Emit(EventIds.NiuNiu_SyncGame,param);
+	}
+
+	// MyDispatcher.Emit()
+	__proto.reqNiuNiuBet=function(param){
+		Network.GetInstance().send("NiuNiu",{msgid:'rspNiuNiuBet',param:param});
+	}
+
+	__proto.rspNiuNiuBet=function(param){
+		MyDispatcher.Emit(EventIds.NiuNiu_Bet,param);
+	}
+
+	NIUNIUProxy.GetInstance=function(){
+		if(NIUNIUProxy._instance==null){
+			NIUNIUProxy._instance=new NIUNIUProxy();
+		}
+		return NIUNIUProxy._instance;
+	}
+
+	NIUNIUProxy._instance=null;
+	return NIUNIUProxy;
+})(ProxyBase)
+
+
+//class module.Login.LoginProxy extends module.Common.ProxyBase
+var LoginProxy=(function(_super){
+	function LoginProxy(){
+		LoginProxy.__super.call(this);
+	}
+
+	__class(LoginProxy,'module.Login.LoginProxy',_super);
+	var __proto=LoginProxy.prototype;
+	__proto.reqLogin=function(account){
+		Network.GetInstance().send("Login",{msgid:"rspLogin",account:account});
+	}
+
+	__proto.rspLogin=function(msg){
+		MoneyMgr.GetInstance().setAssetsData(msg.money);
+		RoleMgr.GetInstance().setBaseData(msg.account);
+		UIManager.GetInstance().closeAll();
+		UIManager.GetInstance().showView("MainView");
+	}
+
+	LoginProxy.GetInstance=function(){
+		if(LoginProxy._instance==null){
+			LoginProxy._instance=new LoginProxy();
+		}
+		return LoginProxy._instance;
+	}
+
+	LoginProxy._instance=null;
+	return LoginProxy;
+})(ProxyBase)
+
+
+//class module.Main.MainProxy extends module.Common.ProxyBase
+var MainProxy=(function(_super){
+	function MainProxy(){
+		MainProxy.__super.call(this);
+	}
+
+	__class(MainProxy,'module.Main.MainProxy',_super);
+	var __proto=MainProxy.prototype;
+	__proto.reqCreateRoom=function(param){
+		Network.GetInstance().send("Lobby",{msgid:"rspCreateRoom",param:param});
+	}
+
+	__proto.rspCreateRoom=function(param){
+		UIManager.GetInstance().closeAll();
+		UIManager.GetInstance().showView(param['data']['gameid']+"View",param);
+	}
+
+	__proto.reqJoinRoom=function(param){
+		Network.GetInstance().send("Lobby",{msgid:"rspJoinRoom",param:param});
+	}
+
+	__proto.rspJoinRoom=function(param){
+		UIManager.GetInstance().closeAll();
+		UIManager.GetInstance().showView(param['data']['gameid']+"View",param);
+	}
+
+	__proto.reqLeaveRoom=function(param){
+		Network.GetInstance().send("Lobby",{msgid:"rspLeaveRoom",param:param});
+	}
+
+	__proto.rspLeaveRoom=function(param){
+		MyDispatcher.Emit(EventIds.Main_LeaveRoom,param.data);
+	}
+
+	MainProxy.GetInstance=function(){
+		if(MainProxy._instance==null){
+			MainProxy._instance=new MainProxy();
+		}
+		return MainProxy._instance;
+	}
+
+	MainProxy._instance=null;
+	return MainProxy;
+})(ProxyBase)
+
+
+//class module.Money.MoneyProxy extends module.Common.ProxyBase
+var MoneyProxy=(function(_super){
+	function MoneyProxy(){
+		MoneyProxy.__super.call(this);
+	}
+
+	__class(MoneyProxy,'module.Money.MoneyProxy',_super);
+	MoneyProxy.GetInstance=function(){
+		if(MoneyProxy._instance==null){
+			MoneyProxy._instance=new MoneyProxy();
+		}
+		return MoneyProxy._instance;
+	}
+
+	MoneyProxy._instance=null;
+	return MoneyProxy;
+})(ProxyBase)
+
+
 //class laya.webgl.utils.Buffer extends laya.resource.Resource
 var Buffer=(function(_super){
 	function Buffer(){
@@ -25436,6 +25659,112 @@ var Component=(function(_super){
 	});
 
 	return Component;
+})(Sprite)
+
+
+//class module.Common.view.Jetton extends laya.display.Sprite
+var Jetton=(function(_super){
+	function Jetton(){
+		Jetton.__super.call(this);
+	}
+
+	__class(Jetton,'module.Common.view.Jetton',_super);
+	var __proto=Jetton.prototype;
+	__proto.setData=function(num){}
+	return Jetton;
+})(Sprite)
+
+
+// 扑克
+//class module.Common.view.Poker extends laya.display.Sprite
+var Poker=(function(_super){
+	function Poker(){
+		this._num=0;
+		this._isBack=false;
+		this._imgBack=null;
+		this._imgFace=null;
+		this._scaleOffsetX=NaN;
+		this._isFaceChange=false;
+		Poker.__super.call(this);
+		this._scaleOffsetX=-1;
+		this._imgBack=new Sprite();
+		this._imgBack.loadImage("poker/cardBack.png");
+		this._imgBack.x=-this._imgBack.width / 2;
+		this._imgBack.y=-this._imgBack.height / 2;
+		this._imgBack.visible=true;
+		this.addChild(this._imgBack);
+		this._imgFace=new Sprite();
+		this._imgFace.x=-this._imgBack.width / 2;
+		this._imgFace.y=-this._imgBack.height / 2;
+		this._imgFace.visible=false;
+		this.addChild(this._imgFace);
+	}
+
+	__class(Poker,'module.Common.view.Poker',_super);
+	var __proto=Poker.prototype;
+	__proto.setData=function(num,isBack){
+		this._num=num;
+		this._isBack=isBack;
+		if(!isBack){
+			var skin='';
+			if(num==53){
+				skin='king10014';
+				}else if(num==54){
+				skin='king10015';
+				}else{
+				var point=num % 13;
+				console.log(point)
+				switch(Math.floor(num / 13)){
+					case 0:
+						skin="diam"+(10000+point);
+						break ;
+					case 1:
+						skin="club"+(10000+point);
+						break ;
+					case 2:
+						skin="hear"+(10000+point);
+						break ;
+					case 3:
+						skin="spad"+(10000+point);
+						break ;
+					}
+			}
+			this._imgFace.loadImage('poker/'+skin+'.png');
+		}
+		this._imgBack.visible=isBack;
+		this._imgFace.visible=!isBack;
+	}
+
+	__proto.playFaceUp=function(){
+		this._imgFace.visible=false;
+		this._imgBack.visible=true;
+		this._isFaceChange=true;
+		Laya.timer.frameLoop(1,this,this._onFrame);
+	}
+
+	__proto.playFaceDown=function(){
+		this._imgFace.visible=true;
+		this._imgBack.visible=false;
+		this._isFaceChange=true;
+		Laya.timer.frameLoop(1,this,this._onFrame);
+	}
+
+	__proto._onFrame=function(e){
+		this._scaleOffsetX+=0.05;
+		if(this._scaleOffsetX >=1){
+			this._scaleOffsetX=-1;
+			Laya.timer.clear(this,this._onFrame);
+			return;
+		}
+		this.scaleX=this._scaleOffsetX;
+		if(Math.abs(this._scaleOffsetX)<=0.05 && this._isFaceChange){
+			this._isFaceChange=false;
+			this._imgFace.visible=!this._imgFace.visible;
+			this._imgBack.visible=!this._imgBack.visible;
+		}
+	}
+
+	return Poker;
 })(Sprite)
 
 
@@ -29149,6 +29478,216 @@ var Box=(function(_super){
 
 
 /**
+*<code>Image</code> 类是用于表示位图图像或绘制图形的显示对象。
+*Image和Clip组件是唯一支持异步加载的两个组件，比如img.skin="abc/xxx.png"，其他UI组件均不支持异步加载。
+*
+*@example <caption>以下示例代码，创建了一个新的 <code>Image</code> 实例，设置了它的皮肤、位置信息，并添加到舞台上。</caption>
+*package
+*{
+	*import laya.ui.Image;
+	*public class Image_Example
+	*{
+		*public function Image_Example()
+		*{
+			*Laya.init(640,800);//设置游戏画布宽高。
+			*Laya.stage.bgColor="#efefef";//设置画布的背景颜色。
+			*onInit();
+			*}
+		*private function onInit():void
+		*{
+			*var bg:Image=new Image("resource/ui/bg.png");//创建一个 Image 类的实例对象 bg ,并传入它的皮肤。
+			*bg.x=100;//设置 bg 对象的属性 x 的值，用于控制 bg 对象的显示位置。
+			*bg.y=100;//设置 bg 对象的属性 y 的值，用于控制 bg 对象的显示位置。
+			*bg.sizeGrid="40,10,5,10";//设置 bg 对象的网格信息。
+			*bg.width=150;//设置 bg 对象的宽度。
+			*bg.height=250;//设置 bg 对象的高度。
+			*Laya.stage.addChild(bg);//将此 bg 对象添加到显示列表。
+			*var image:Image=new Image("resource/ui/image.png");//创建一个 Image 类的实例对象 image ,并传入它的皮肤。
+			*image.x=100;//设置 image 对象的属性 x 的值，用于控制 image 对象的显示位置。
+			*image.y=100;//设置 image 对象的属性 y 的值，用于控制 image 对象的显示位置。
+			*Laya.stage.addChild(image);//将此 image 对象添加到显示列表。
+			*}
+		*}
+	*}
+*@example
+*Laya.init(640,800);//设置游戏画布宽高
+*Laya.stage.bgColor="#efefef";//设置画布的背景颜色
+*onInit();
+*function onInit(){
+	*var bg=new laya.ui.Image("resource/ui/bg.png");//创建一个 Image 类的实例对象 bg ,并传入它的皮肤。
+	*bg.x=100;//设置 bg 对象的属性 x 的值，用于控制 bg 对象的显示位置。
+	*bg.y=100;//设置 bg 对象的属性 y 的值，用于控制 bg 对象的显示位置。
+	*bg.sizeGrid="40,10,5,10";//设置 bg 对象的网格信息。
+	*bg.width=150;//设置 bg 对象的宽度。
+	*bg.height=250;//设置 bg 对象的高度。
+	*Laya.stage.addChild(bg);//将此 bg 对象添加到显示列表。
+	*var image=new laya.ui.Image("resource/ui/image.png");//创建一个 Image 类的实例对象 image ,并传入它的皮肤。
+	*image.x=100;//设置 image 对象的属性 x 的值，用于控制 image 对象的显示位置。
+	*image.y=100;//设置 image 对象的属性 y 的值，用于控制 image 对象的显示位置。
+	*Laya.stage.addChild(image);//将此 image 对象添加到显示列表。
+	*}
+*@example
+*class Image_Example {
+	*constructor(){
+		*Laya.init(640,800);//设置游戏画布宽高。
+		*Laya.stage.bgColor="#efefef";//设置画布的背景颜色。
+		*this.onInit();
+		*}
+	*private onInit():void {
+		*var bg:laya.ui.Image=new laya.ui.Image("resource/ui/bg.png");//创建一个 Image 类的实例对象 bg ,并传入它的皮肤。
+		*bg.x=100;//设置 bg 对象的属性 x 的值，用于控制 bg 对象的显示位置。
+		*bg.y=100;//设置 bg 对象的属性 y 的值，用于控制 bg 对象的显示位置。
+		*bg.sizeGrid="40,10,5,10";//设置 bg 对象的网格信息。
+		*bg.width=150;//设置 bg 对象的宽度。
+		*bg.height=250;//设置 bg 对象的高度。
+		*Laya.stage.addChild(bg);//将此 bg 对象添加到显示列表。
+		*var image:laya.ui.Image=new laya.ui.Image("resource/ui/image.png");//创建一个 Image 类的实例对象 image ,并传入它的皮肤。
+		*image.x=100;//设置 image 对象的属性 x 的值，用于控制 image 对象的显示位置。
+		*image.y=100;//设置 image 对象的属性 y 的值，用于控制 image 对象的显示位置。
+		*Laya.stage.addChild(image);//将此 image 对象添加到显示列表。
+		*}
+	*}
+*@see laya.ui.AutoBitmap
+*/
+//class laya.ui.Image extends laya.ui.Component
+var Image=(function(_super){
+	function Image(skin){
+		/**@private */
+		this._bitmap=null;
+		/**@private */
+		this._skin=null;
+		/**@private */
+		this._group=null;
+		Image.__super.call(this);
+		this.skin=skin;
+	}
+
+	__class(Image,'laya.ui.Image',_super);
+	var __proto=Image.prototype;
+	/**@inheritDoc */
+	__proto.destroy=function(destroyChild){
+		(destroyChild===void 0)&& (destroyChild=true);
+		_super.prototype.destroy.call(this,true);
+		this._bitmap && this._bitmap.destroy();
+		this._bitmap=null;
+	}
+
+	/**
+	*销毁对象并释放加载的皮肤资源。
+	*/
+	__proto.dispose=function(){
+		this.destroy(true);
+		Laya.loader.clearRes(this._skin);
+	}
+
+	/**@inheritDoc */
+	__proto.createChildren=function(){
+		this.graphics=this._bitmap=new AutoBitmap();
+		this._bitmap.autoCacheCmd=false;
+	}
+
+	/**
+	*@private
+	*设置皮肤资源。
+	*/
+	__proto.setSource=function(url,img){
+		if (url===this._skin && img){
+			this.source=img
+			this.onCompResize();
+		}
+	}
+
+	/**
+	*@copy laya.ui.AutoBitmap#source
+	*/
+	__getset(0,__proto,'source',function(){
+		return this._bitmap.source;
+		},function(value){
+		if (!this._bitmap)return;
+		this._bitmap.source=value;
+		this.event("loaded");
+		this.repaint();
+	});
+
+	/**@inheritDoc */
+	__getset(0,__proto,'dataSource',_super.prototype._$get_dataSource,function(value){
+		this._dataSource=value;
+		if ((typeof value=='string'))this.skin=value;
+		else Laya.superSet(Component,this,'dataSource',value);
+	});
+
+	/**@inheritDoc */
+	__getset(0,__proto,'measureHeight',function(){
+		return this._bitmap.height;
+	});
+
+	/**
+	*<p>对象的皮肤地址，以字符串表示。</p>
+	*<p>如果资源未加载，则先加载资源，加载完成后应用于此对象。</p>
+	*<b>注意：</b>资源加载完成后，会自动缓存至资源库中。
+	*/
+	__getset(0,__proto,'skin',function(){
+		return this._skin;
+		},function(value){
+		if (this._skin !=value){
+			this._skin=value;
+			if (value){
+				var source=Loader.getRes(value);
+				if (source){
+					this.source=source;
+					this.onCompResize();
+				}else Laya.loader.load(this._skin,Handler.create(this,this.setSource,[this._skin]),null,"image",1,true,this._group);
+				}else {
+				this.source=null;
+			}
+		}
+	});
+
+	/**
+	*资源分组。
+	*/
+	__getset(0,__proto,'group',function(){
+		return this._group;
+		},function(value){
+		if (value && this._skin)Loader.setGroup(this._skin,value);
+		this._group=value;
+	});
+
+	/**
+	*<p>当前实例的位图 <code>AutoImage</code> 实例的有效缩放网格数据。</p>
+	*<p>数据格式："上边距,右边距,下边距,左边距,是否重复填充(值为0：不重复填充，1：重复填充)"，以逗号分隔。
+	*<ul><li>例如："4,4,4,4,1"。</li></ul></p>
+	*@see laya.ui.AutoBitmap#sizeGrid
+	*/
+	__getset(0,__proto,'sizeGrid',function(){
+		if (this._bitmap.sizeGrid)return this._bitmap.sizeGrid.join(",");
+		return null;
+		},function(value){
+		this._bitmap.sizeGrid=UIUtils.fillArray(Styles.defaultSizeGrid,value,Number);
+	});
+
+	/**@inheritDoc */
+	__getset(0,__proto,'measureWidth',function(){
+		return this._bitmap.width;
+	});
+
+	/**@inheritDoc */
+	__getset(0,__proto,'width',_super.prototype._$get_width,function(value){
+		Laya.superSet(Component,this,'width',value);
+		this._bitmap.width=value==0 ? 0.0000001 :value;
+	});
+
+	/**@inheritDoc */
+	__getset(0,__proto,'height',_super.prototype._$get_height,function(value){
+		Laya.superSet(Component,this,'height',value);
+		this._bitmap.height=value==0 ? 0.0000001 :value;
+	});
+
+	return Image;
+})(Component)
+
+
+/**
 *<code>Button</code> 组件用来表示常用的多态按钮。 <code>Button</code> 组件可显示文本标签、图标或同时显示两者。 *
 *<p>可以是单态，两态和三态，默认三态(up,over,down)。</p>
 *
@@ -32040,216 +32579,6 @@ var Slider=(function(_super){
 
 
 /**
-*<code>Image</code> 类是用于表示位图图像或绘制图形的显示对象。
-*Image和Clip组件是唯一支持异步加载的两个组件，比如img.skin="abc/xxx.png"，其他UI组件均不支持异步加载。
-*
-*@example <caption>以下示例代码，创建了一个新的 <code>Image</code> 实例，设置了它的皮肤、位置信息，并添加到舞台上。</caption>
-*package
-*{
-	*import laya.ui.Image;
-	*public class Image_Example
-	*{
-		*public function Image_Example()
-		*{
-			*Laya.init(640,800);//设置游戏画布宽高。
-			*Laya.stage.bgColor="#efefef";//设置画布的背景颜色。
-			*onInit();
-			*}
-		*private function onInit():void
-		*{
-			*var bg:Image=new Image("resource/ui/bg.png");//创建一个 Image 类的实例对象 bg ,并传入它的皮肤。
-			*bg.x=100;//设置 bg 对象的属性 x 的值，用于控制 bg 对象的显示位置。
-			*bg.y=100;//设置 bg 对象的属性 y 的值，用于控制 bg 对象的显示位置。
-			*bg.sizeGrid="40,10,5,10";//设置 bg 对象的网格信息。
-			*bg.width=150;//设置 bg 对象的宽度。
-			*bg.height=250;//设置 bg 对象的高度。
-			*Laya.stage.addChild(bg);//将此 bg 对象添加到显示列表。
-			*var image:Image=new Image("resource/ui/image.png");//创建一个 Image 类的实例对象 image ,并传入它的皮肤。
-			*image.x=100;//设置 image 对象的属性 x 的值，用于控制 image 对象的显示位置。
-			*image.y=100;//设置 image 对象的属性 y 的值，用于控制 image 对象的显示位置。
-			*Laya.stage.addChild(image);//将此 image 对象添加到显示列表。
-			*}
-		*}
-	*}
-*@example
-*Laya.init(640,800);//设置游戏画布宽高
-*Laya.stage.bgColor="#efefef";//设置画布的背景颜色
-*onInit();
-*function onInit(){
-	*var bg=new laya.ui.Image("resource/ui/bg.png");//创建一个 Image 类的实例对象 bg ,并传入它的皮肤。
-	*bg.x=100;//设置 bg 对象的属性 x 的值，用于控制 bg 对象的显示位置。
-	*bg.y=100;//设置 bg 对象的属性 y 的值，用于控制 bg 对象的显示位置。
-	*bg.sizeGrid="40,10,5,10";//设置 bg 对象的网格信息。
-	*bg.width=150;//设置 bg 对象的宽度。
-	*bg.height=250;//设置 bg 对象的高度。
-	*Laya.stage.addChild(bg);//将此 bg 对象添加到显示列表。
-	*var image=new laya.ui.Image("resource/ui/image.png");//创建一个 Image 类的实例对象 image ,并传入它的皮肤。
-	*image.x=100;//设置 image 对象的属性 x 的值，用于控制 image 对象的显示位置。
-	*image.y=100;//设置 image 对象的属性 y 的值，用于控制 image 对象的显示位置。
-	*Laya.stage.addChild(image);//将此 image 对象添加到显示列表。
-	*}
-*@example
-*class Image_Example {
-	*constructor(){
-		*Laya.init(640,800);//设置游戏画布宽高。
-		*Laya.stage.bgColor="#efefef";//设置画布的背景颜色。
-		*this.onInit();
-		*}
-	*private onInit():void {
-		*var bg:laya.ui.Image=new laya.ui.Image("resource/ui/bg.png");//创建一个 Image 类的实例对象 bg ,并传入它的皮肤。
-		*bg.x=100;//设置 bg 对象的属性 x 的值，用于控制 bg 对象的显示位置。
-		*bg.y=100;//设置 bg 对象的属性 y 的值，用于控制 bg 对象的显示位置。
-		*bg.sizeGrid="40,10,5,10";//设置 bg 对象的网格信息。
-		*bg.width=150;//设置 bg 对象的宽度。
-		*bg.height=250;//设置 bg 对象的高度。
-		*Laya.stage.addChild(bg);//将此 bg 对象添加到显示列表。
-		*var image:laya.ui.Image=new laya.ui.Image("resource/ui/image.png");//创建一个 Image 类的实例对象 image ,并传入它的皮肤。
-		*image.x=100;//设置 image 对象的属性 x 的值，用于控制 image 对象的显示位置。
-		*image.y=100;//设置 image 对象的属性 y 的值，用于控制 image 对象的显示位置。
-		*Laya.stage.addChild(image);//将此 image 对象添加到显示列表。
-		*}
-	*}
-*@see laya.ui.AutoBitmap
-*/
-//class laya.ui.Image extends laya.ui.Component
-var Image=(function(_super){
-	function Image(skin){
-		/**@private */
-		this._bitmap=null;
-		/**@private */
-		this._skin=null;
-		/**@private */
-		this._group=null;
-		Image.__super.call(this);
-		this.skin=skin;
-	}
-
-	__class(Image,'laya.ui.Image',_super);
-	var __proto=Image.prototype;
-	/**@inheritDoc */
-	__proto.destroy=function(destroyChild){
-		(destroyChild===void 0)&& (destroyChild=true);
-		_super.prototype.destroy.call(this,true);
-		this._bitmap && this._bitmap.destroy();
-		this._bitmap=null;
-	}
-
-	/**
-	*销毁对象并释放加载的皮肤资源。
-	*/
-	__proto.dispose=function(){
-		this.destroy(true);
-		Laya.loader.clearRes(this._skin);
-	}
-
-	/**@inheritDoc */
-	__proto.createChildren=function(){
-		this.graphics=this._bitmap=new AutoBitmap();
-		this._bitmap.autoCacheCmd=false;
-	}
-
-	/**
-	*@private
-	*设置皮肤资源。
-	*/
-	__proto.setSource=function(url,img){
-		if (url===this._skin && img){
-			this.source=img
-			this.onCompResize();
-		}
-	}
-
-	/**
-	*@copy laya.ui.AutoBitmap#source
-	*/
-	__getset(0,__proto,'source',function(){
-		return this._bitmap.source;
-		},function(value){
-		if (!this._bitmap)return;
-		this._bitmap.source=value;
-		this.event("loaded");
-		this.repaint();
-	});
-
-	/**@inheritDoc */
-	__getset(0,__proto,'dataSource',_super.prototype._$get_dataSource,function(value){
-		this._dataSource=value;
-		if ((typeof value=='string'))this.skin=value;
-		else Laya.superSet(Component,this,'dataSource',value);
-	});
-
-	/**@inheritDoc */
-	__getset(0,__proto,'measureHeight',function(){
-		return this._bitmap.height;
-	});
-
-	/**
-	*<p>对象的皮肤地址，以字符串表示。</p>
-	*<p>如果资源未加载，则先加载资源，加载完成后应用于此对象。</p>
-	*<b>注意：</b>资源加载完成后，会自动缓存至资源库中。
-	*/
-	__getset(0,__proto,'skin',function(){
-		return this._skin;
-		},function(value){
-		if (this._skin !=value){
-			this._skin=value;
-			if (value){
-				var source=Loader.getRes(value);
-				if (source){
-					this.source=source;
-					this.onCompResize();
-				}else Laya.loader.load(this._skin,Handler.create(this,this.setSource,[this._skin]),null,"image",1,true,this._group);
-				}else {
-				this.source=null;
-			}
-		}
-	});
-
-	/**
-	*资源分组。
-	*/
-	__getset(0,__proto,'group',function(){
-		return this._group;
-		},function(value){
-		if (value && this._skin)Loader.setGroup(this._skin,value);
-		this._group=value;
-	});
-
-	/**
-	*<p>当前实例的位图 <code>AutoImage</code> 实例的有效缩放网格数据。</p>
-	*<p>数据格式："上边距,右边距,下边距,左边距,是否重复填充(值为0：不重复填充，1：重复填充)"，以逗号分隔。
-	*<ul><li>例如："4,4,4,4,1"。</li></ul></p>
-	*@see laya.ui.AutoBitmap#sizeGrid
-	*/
-	__getset(0,__proto,'sizeGrid',function(){
-		if (this._bitmap.sizeGrid)return this._bitmap.sizeGrid.join(",");
-		return null;
-		},function(value){
-		this._bitmap.sizeGrid=UIUtils.fillArray(Styles.defaultSizeGrid,value,Number);
-	});
-
-	/**@inheritDoc */
-	__getset(0,__proto,'measureWidth',function(){
-		return this._bitmap.width;
-	});
-
-	/**@inheritDoc */
-	__getset(0,__proto,'width',_super.prototype._$get_width,function(value){
-		Laya.superSet(Component,this,'width',value);
-		this._bitmap.width=value==0 ? 0.0000001 :value;
-	});
-
-	/**@inheritDoc */
-	__getset(0,__proto,'height',_super.prototype._$get_height,function(value){
-		Laya.superSet(Component,this,'height',value);
-		this._bitmap.height=value==0 ? 0.0000001 :value;
-	});
-
-	return Image;
-})(Component)
-
-
-/**
 *<p> <code>Label</code> 类用于创建显示对象以显示文本。</p>
 *
 *@example <caption>以下示例代码，创建了一个 <code>Label</code> 实例。</caption>
@@ -34545,12 +34874,47 @@ var DebugItem=(function(_super){
 		if(data){
 			if(this.index==0){
 				DebugProxy.GetInstance().reqSvrDebug(this.input.text);
+				}else if(this.index==1){
+				var poker=FactoryMgr.GetInstance().createPoker(0,true);
+				poker.x=100;
+				poker.y=100;
+				Tween.to(poker,{x:300},1000,Ease.linearIn,Handler.create(this,function(args,b){
+				},[poker,2]));
+				Laya.stage.addChild(poker);
 			}
 		}
 	}
 
 	return DebugItem;
 })(Box)
+
+
+//class module.Common.view.PlayerHead extends laya.ui.Image
+var PlayerHead=(function(_super){
+	function PlayerHead(){
+		this._icon=null;
+		PlayerHead.__super.call(this);
+	}
+
+	__class(PlayerHead,'module.Common.view.PlayerHead',_super);
+	var __proto=PlayerHead.prototype;
+	__proto.setData=function(param){
+		if(param==null){
+			this.icon.visible=false;
+			}else{
+			this.icon.visible=true;
+		}
+	}
+
+	__getset(0,__proto,'icon',function(){
+		if(this._icon==null){
+			this._icon=this.getChildByName("icon");
+		}
+		return this._icon;
+	});
+
+	return PlayerHead;
+})(Image)
 
 
 /**
@@ -39265,17 +39629,36 @@ var G_NIUNIUUI=(function(_super){
 		this.btn_bet5=null;
 		this.btn_history=null;
 		this.btn_pool=null;
+		this.icon1=null;
+		this.icon2=null;
+		this.icon3=null;
+		this.icon4=null;
+		this.icon5=null;
+		this.icon6=null;
+		this.icon7=null;
+		this.icon8=null;
+		this.icon9=null;
+		this.p_area1=null;
+		this.p_area2=null;
+		this.p_area3=null;
+		this.p_area4=null;
+		this.p_card=null;
+		this.lab_roomid=null;
+		this.p_area0=null;
+		this.p_deal=null;
 		G_NIUNIUUI.__super.call(this);
 	}
 
 	__class(G_NIUNIUUI,'ui.G_NIUNIU.G_NIUNIUUI',_super);
 	var __proto=G_NIUNIUUI.prototype;
 	__proto.createChildren=function(){
+		View.regComponent("module.Common.view.PlayerHead",PlayerHead);
+		View.regComponent("Text",Text);
 		laya.ui.Component.prototype.createChildren.call(this);
 		this.createView(G_NIUNIUUI.uiView);
 	}
 
-	G_NIUNIUUI.uiView={"type":"View","props":{"width":1280,"height":720},"child":[{"type":"Button","props":{"y":23,"x":20,"var":"btn_back","skin":"comp/button.png","label":"返回"}},{"type":"Button","props":{"y":95,"x":135,"width":75,"var":"btn_pos","skin":"comp/button.png","label":"上庄","height":33}},{"type":"Button","props":{"y":613,"x":374,"var":"btn_bet1","skin":"comp/button.png","label":"10"}},{"type":"Button","props":{"y":613,"x":468,"var":"btn_bet2","skin":"comp/button.png","label":"100"}},{"type":"Button","props":{"y":613,"x":561,"var":"btn_bet3","skin":"comp/button.png","label":"1000"}},{"type":"Button","props":{"y":613,"x":655,"var":"btn_bet4","skin":"comp/button.png","label":"5000"}},{"type":"Button","props":{"y":613,"x":748,"var":"btn_bet5","skin":"comp/button.png","label":"10000"}},{"type":"Button","props":{"y":596,"x":921,"width":86,"var":"btn_history","skin":"comp/button.png","label":"走势","height":33}},{"type":"Button","props":{"y":105,"x":848,"width":99,"var":"btn_pool","skin":"comp/button.png","labelSize":20,"label":"奖池","height":37}},{"type":"Label","props":{"y":539,"x":381,"width":444,"text":"正在下注","height":30,"fontSize":30,"color":"#000000","align":"center"}}]};
+	G_NIUNIUUI.uiView={"type":"View","props":{"width":1280,"height":720},"child":[{"type":"Button","props":{"y":29,"x":16,"var":"btn_back","skin":"comp/button.png","labelSize":24,"label":"返回","height":30}},{"type":"Button","props":{"y":60,"x":735,"width":88,"var":"btn_pos","skin":"comp/button.png","labelSize":24,"label":"上庄","height":39}},{"type":"Button","props":{"y":614,"x":360,"var":"btn_bet1","skin":"comp/btn_green.png","label":"10"}},{"type":"Button","props":{"y":613,"x":468,"var":"btn_bet2","skin":"comp/btn_green.png","label":"100"}},{"type":"Button","props":{"y":613,"x":561,"var":"btn_bet3","skin":"comp/btn_green.png","label":"1000"}},{"type":"Button","props":{"y":614,"x":663,"var":"btn_bet4","skin":"comp/btn_green.png","label":"5000"}},{"type":"Button","props":{"y":614,"x":764,"var":"btn_bet5","skin":"comp/btn_green.png","label":"10000"}},{"type":"Button","props":{"y":608,"x":899,"width":113,"var":"btn_history","skin":"comp/button.png","labelSize":24,"label":"走势","height":45}},{"type":"Button","props":{"y":105,"x":848,"width":99,"var":"btn_pool","skin":"comp/button.png","labelSize":24,"label":"奖池","height":37}},{"type":"Label","props":{"y":576,"x":349,"width":444,"text":"正在下注","height":30,"fontSize":30,"color":"#000000","align":"center"}},{"type":"Image","props":{"y":60,"x":317,"skin":"comp/banker.png"}},{"type":"Image","props":{"y":55,"x":392,"var":"icon1","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headgril.png","name":"icon"}}]},{"type":"Image","props":{"y":221,"x":113,"var":"icon2","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]},{"type":"Image","props":{"y":314,"x":113,"var":"icon3","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]},{"type":"Image","props":{"y":407,"x":113,"var":"icon4","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]},{"type":"Image","props":{"y":500,"x":113,"var":"icon5","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]},{"type":"Image","props":{"y":221,"x":1074,"var":"icon6","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]},{"type":"Image","props":{"y":410,"x":1074,"var":"icon7","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]},{"type":"Image","props":{"y":316,"x":1074,"var":"icon8","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]},{"type":"Image","props":{"y":505,"x":1074,"var":"icon9","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]},{"type":"Image","props":{"y":247,"x":223,"width":192,"skin":"comp/bg_alert.png","sizeGrid":"12,14,13,11","height":177},"child":[{"type":"Box","props":{"y":92,"x":94,"width":50,"var":"p_area1","pivotY":25,"pivotX":25,"height":50}}]},{"type":"Image","props":{"y":247,"x":421,"width":192,"skin":"comp/bg_alert.png","sizeGrid":"12,14,13,11","height":177},"child":[{"type":"Box","props":{"y":92,"x":93,"width":50,"var":"p_area2","pivotY":25,"pivotX":25,"height":50}}]},{"type":"Image","props":{"y":247,"x":620,"width":192,"skin":"comp/bg_alert.png","sizeGrid":"12,14,13,11","height":177},"child":[{"type":"Box","props":{"y":92,"x":91,"width":50,"var":"p_area3","pivotY":25,"pivotX":25,"height":50}}]},{"type":"Image","props":{"y":245,"x":818,"width":192,"skin":"comp/bg_alert.png","sizeGrid":"12,14,13,11","height":177},"child":[{"type":"Box","props":{"y":65,"x":68,"width":50,"var":"p_area4","height":50}}]},{"type":"Box","props":{"y":482,"x":252,"width":50,"var":"p_card","pivotY":25,"pivotX":25,"height":50}},{"type":"Box","props":{"y":482,"x":449,"width":50,"pivotY":25,"pivotX":25,"height":50}},{"type":"Box","props":{"y":482,"x":646,"width":50,"pivotY":25,"pivotX":25,"height":50}},{"type":"Box","props":{"y":482,"x":843,"width":50,"pivotY":25,"pivotX":25,"height":50}},{"type":"Box","props":{"y":82,"x":517,"width":50,"pivotY":25,"pivotX":25,"height":50}},{"type":"Text","props":{"y":26,"x":108,"width":192,"var":"lab_roomid","text":"房间ID:","height":34,"fontSize":25,"color":"#000000"}},{"type":"Box","props":{"y":641,"x":1114,"width":50,"var":"p_area0","pivotY":25,"pivotX":25,"height":50}},{"type":"Box","props":{"y":1,"x":624,"width":50,"var":"p_deal","pivotY":25,"pivotX":25,"height":50}}]};
 	return G_NIUNIUUI;
 })(View)
 
@@ -39886,7 +40269,6 @@ var AlertUI=(function(_super){
 //class ui.Debug.DebugViewUI extends laya.ui.Dialog
 var DebugViewUI=(function(_super){
 	function DebugViewUI(){
-		this.btn_close=null;
 		this.list_debug=null;
 		DebugViewUI.__super.call(this);
 	}
@@ -39899,7 +40281,7 @@ var DebugViewUI=(function(_super){
 		this.createView(DebugViewUI.uiView);
 	}
 
-	DebugViewUI.uiView={"type":"Dialog","props":{"width":1280,"height":720},"child":[{"type":"Image","props":{"y":80,"x":163,"width":984,"skin":"comp/bg.png","sizeGrid":"36,8,8,9","height":574}},{"type":"Button","props":{"y":82,"x":1116,"var":"btn_close","skin":"comp/btn_close.png"}},{"type":"List","props":{"y":117,"x":183,"width":187,"var":"list_debug","repeatY":8,"repeatX":1,"height":263},"child":[{"type":"Box","props":{"y":0,"x":-1,"width":188,"runtime":"module.Debug.DebugItem","renderType":"render","name":"cell","height":34},"child":[{"type":"TextInput","props":{"y":2,"x":1,"width":100,"text":"TextInput","skin":"comp/textinput.png","name":"input_field","height":30}},{"type":"Button","props":{"y":2,"x":105,"width":80,"skin":"comp/button.png","name":"btn_click","label":"注入代码","height":30}}]}]}]};
+	DebugViewUI.uiView={"type":"Dialog","props":{"width":1280,"height":720},"child":[{"type":"Image","props":{"y":80,"x":163,"width":984,"skin":"comp/bg.png","sizeGrid":"36,8,8,9","height":574}},{"type":"Button","props":{"y":82,"x":1116,"skin":"comp/btn_close.png","name":"close"}},{"type":"List","props":{"y":117,"x":183,"width":187,"var":"list_debug","repeatY":8,"repeatX":1,"height":263},"child":[{"type":"Box","props":{"y":0,"x":-1,"width":188,"runtime":"module.Debug.DebugItem","renderType":"render","name":"cell","height":34},"child":[{"type":"TextInput","props":{"y":2,"x":1,"width":100,"text":"TextInput","skin":"comp/textinput.png","name":"input_field","height":30}},{"type":"Button","props":{"y":2,"x":105,"width":80,"skin":"comp/button.png","name":"btn_click","label":"注入代码","height":30}}]}]}]};
 	return DebugViewUI;
 })(Dialog)
 
@@ -39979,7 +40361,23 @@ var MsgboxUI=(function(_super){
 //class module.G_NIUNIU.NiuNiuView extends ui.G_NIUNIU.G_NIUNIUUI
 var NiuNiuView=(function(_super){
 	function NiuNiuView(){
+		this._betpools=null;
+		this._pokerpools=null;
 		NiuNiuView.__super.call(this);
+		for(var i=0;i<5;i++){
+			this['btn_bet'+(i+1)].label=NIUNIUData.GetInstance().betDefs[i];
+		}
+		for(i=0;i<9;i++){
+			this['icon'+(i+1)].setData(null);
+		}
+		this._betpools=new Object();
+		for(i=1;i<=4;i++){
+			this._betpools[i]=[];
+		}
+		this._pokerpools=new Object();
+		for(i=1;i<=5;i++){
+			this._pokerpools[i]=[];
+		}
 	}
 
 	__class(NiuNiuView,'module.G_NIUNIU.NiuNiuView',_super);
@@ -39988,11 +40386,47 @@ var NiuNiuView=(function(_super){
 	__proto.onOpen=function(param){
 		this.btn_back.on("click",this,this.onBtnBack);
 		this.btn_pos.on("click",this,this.onBtnPos);
+		MyDispatcher.AddNotice(EventIds.NiuNiu_Update,this,this._onUpdate);
+		MyDispatcher.AddNotice(EventIds.NiuNiu_SyncGame,this,this._onSyncGame);
+		MyDispatcher.AddNotice(EventIds.NiuNiu_SetPos,this,this._onSetPos);
+		MyDispatcher.AddNotice(EventIds.NiuNiu_Bet,this,this._onBet);
+		MyDispatcher.AddNotice(EventIds.Main_LeaveRoom,this,this._onLeaveRoom);
+		for(var i=0;i<5;i++){
+			this['btn_bet'+(i+1)].on("click",this,this.onBtnBet);
+		}
+		NIUNIUData.GetInstance().room=param.data;
+		this._refreshRoomData();
 	}
 
 	__proto.onClose=function(){
 		this.btn_back.off("click",this,this.onBtnBack);
 		this.btn_pos.off("click",this,this.onBtnPos);
+		for(var i=0;i<5;i++){
+			this['btn_bet'+(i+1)].off("click",this,this.onBtnBet);
+		}
+		MyDispatcher.RemoveNotice(EventIds.NiuNiu_Update,this,this._onUpdate);
+		MyDispatcher.RemoveNotice(EventIds.NiuNiu_SyncGame,this,this._onSyncGame);
+		MyDispatcher.RemoveNotice(EventIds.NiuNiu_SetPos,this,this._onSetPos);
+		MyDispatcher.RemoveNotice(EventIds.NiuNiu_Bet,this,this._onBet);
+		MyDispatcher.RemoveNotice(EventIds.Main_LeaveRoom,this,this._onLeaveRoom);
+	}
+
+	__proto.onBtnBet=function(e){
+		if (e.currentTarget==this.btn_bet1){
+			NIUNIUProxy.GetInstance().reqNiuNiuBet(NIUNIUData.GetInstance().betDefs[1]);
+		}
+		else if (e.currentTarget==this.btn_bet2){
+			NIUNIUProxy.GetInstance().reqNiuNiuBet(NIUNIUData.GetInstance().betDefs[2]);
+		}
+		else if (e.currentTarget==this.btn_bet3){
+			NIUNIUProxy.GetInstance().reqNiuNiuBet(NIUNIUData.GetInstance().betDefs[3]);
+		}
+		else if (e.currentTarget==this.btn_bet4){
+			NIUNIUProxy.GetInstance().reqNiuNiuBet(NIUNIUData.GetInstance().betDefs[4]);
+		}
+		else if (e.currentTarget==this.btn_bet5){
+			NIUNIUProxy.GetInstance().reqNiuNiuBet(NIUNIUData.GetInstance().betDefs[5]);
+		}
 	}
 
 	__proto.onBtnPos=function(e){
@@ -40000,7 +40434,125 @@ var NiuNiuView=(function(_super){
 	}
 
 	__proto.onBtnBack=function(e){
-		NIUNIUProxy.GetInstance().reqNiuNiuLeave();
+		MainProxy.GetInstance().reqLeaveRoom({'gameid':'NiuNiu'});
+	}
+
+	__proto._refreshRoomData=function(){
+		var room=NIUNIUData.GetInstance().room;
+		if(room){
+			this.lab_roomid.text=room.roomid;
+			for(var i=0;i<room.placeLimit;i++){
+				this['icon'+(i+1)].setData(room.places[(i+1)]);
+			}
+		}
+	}
+
+	__proto._onUpdate=function(e){
+		this._makeUpdateSync(e);
+	}
+
+	__proto._onSyncGame=function(e){
+		this._makeUpdateSync(e);
+	}
+
+	__proto._makeUpdateSync=function(e){
+		if(e){
+			var room=NIUNIUData.GetInstance().room;
+			if(e.data.status=='idle'){
+				for(var areaidx=0 in this._pokerpools){
+					var poker;
+					for(var $each_poker in this._pokerpools[areaidx]){
+						poker=this._pokerpools[areaidx][$each_poker];
+						poker.removeSelf();
+					}
+					this._pokerpools[areaidx]=[];
+				}
+				}else if(e.data.status=='prepare'){
+				}else if(e.data.status=='deal'){
+				var betcards=e.data.betcards;
+				for(areaidx in betcards){
+					var cards=betcards[areaidx];
+					var len=cards.length;
+					var idx=0;
+					for(var i=0;i<5;i++){
+						poker=FactoryMgr.GetInstance().createPoker(0,true);
+						this._pokerpools[areaidx].push(poker);
+						if(i < len){
+							poker.setData(cards[idx],false);
+							idx++;
+						}
+						poker.x=this.p_deal.x;
+						poker.y=this.p_deal.y;
+						this.addChild(poker);
+						var toArea=this['p_area'+areaidx];
+						Tween.to(poker,{x:toArea.x,y:toArea.y },2000,Ease.linearIn,new Handler(this,function(i,poker,len){
+							if(i<len){
+								poker.playFaceUp();
+							}
+						},[i,poker,len]),areaidx*300);
+					}
+				}
+				}else if(e.data.status=='betting'){
+				}else if(e.data.status=='finish'){
+				betcards=e.data.betcards;
+				for(areaidx in betcards){
+					cards=betcards[areaidx];
+					len=cards.length;
+					idx=0;
+					var pokers=this._pokerpools[areaidx];
+					for(i=0;i<5;i++){
+						poker=pokers[i];
+						if(i >=(5-len)){
+							poker.setData(cards[idx],false);
+							poker.playFaceUp();
+							idx++;
+						}
+					}
+				}
+			}
+			Util.dump(e);
+		}
+	}
+
+	__proto._onSetPos=function(e){}
+	__proto._onBet=function(e){
+		if(e){
+			var client_id=e.data.client_id;
+			var room=NIUNIUData.GetInstance().room;
+			var places=room.places;
+			var cur_persion;
+			var cur_seatid=-1;
+			for(var seatIdx=0 in places){
+				if(places[seatIdx].client_id==client_id){
+					cur_seatid=seatIdx;
+					cur_persion=places[seatIdx];
+					break ;
+				}
+			}
+			if(cur_persion){
+				var jetton=FactoryMgr.GetInstance().createJetton({num:e.data.betnum});
+				this.addChild(jetton);
+				if(cur_seatid==-1){
+					jetton.x=this.p_area0.x;
+					jetton.y=this.p_area0.y;
+					}else{
+					jetton.x=this['icon'+cur_seatid].x;
+					jetton.y=this['icon'+cur_seatid].y;
+				};
+				var toArea=this['p_area'+e.data.betidx];
+				Tween.from(jetton,{x:toArea.x,y:toArea.y },2000,Ease.linearIn);
+				this._betpools[e.data.betidx].push({num:e.data.betnum,obj:jetton});
+			}
+		}
+		Util.dump(e);
+	}
+
+	__proto._onLeaveRoom=function(e){
+		if(e.gameid=="NiuNiu"){
+			NIUNIUData.GetInstance().onClean();
+			UIManager.GetInstance().closeAll();
+			UIManager.GetInstance().showView("MainView");
+		}
 	}
 
 	return NiuNiuView;
@@ -40017,7 +40569,7 @@ var LoginView=(function(_super){
 	var __proto=LoginView.prototype;
 	Laya.imps(__proto,{"module.Common.IUIBase":true})
 	__proto.onBtnLogin=function(e){
-		Network.GetInstance().send("Login",{msgid:"rspLogin",account:this.input_account.text});
+		LoginProxy.GetInstance().reqLogin(this.input_account.text);
 	}
 
 	__proto.onOpen=function(param){
@@ -40082,6 +40634,8 @@ var MJ_GDView=(function(_super){
 var Alert=(function(_super){
 	function Alert(){
 		Alert.__super.call(this);
+		this.isModal=false;
+		this.popupCenter=false;
 	}
 
 	__class(Alert,'module.Common.view.Alert',_super);
@@ -40105,19 +40659,14 @@ var DebugView=(function(_super){
 		DebugView.__super.call(this);
 		this.list_debug.array=DebugMgr.GetInstance().debugArr;
 		this.list_debug.renderHandler=new Handler(this,this.onUpdateItem);
+		this.closeHandler=new Handler(this.onBtnClose);
 	}
 
 	__class(DebugView,'module.Debug.DebugView',_super);
 	var __proto=DebugView.prototype;
 	Laya.imps(__proto,{"module.Common.IUIBase":true})
-	__proto.onOpen=function(param){
-		this.btn_close.on("click",this,this.onBtnClose);
-	}
-
-	__proto.onClose=function(){
-		this.btn_close.off("click",this,this.onBtnClose);
-	}
-
+	__proto.onOpen=function(param){}
+	__proto.onClose=function(){}
 	__proto.onUpdateItem=function(cell,index){
 		cell.setData(index);
 	}

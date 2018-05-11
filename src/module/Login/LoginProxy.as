@@ -4,6 +4,9 @@ package module.Login
 	import module.Common.MsgIds;
 	import module.Common.UIManager;
 	import module.Common.ProxyBase;
+	import module.Money.MoneyMgr;
+	import module.Role.RoleMgr;
+	import module.Common.MyDispatcher;
 
 	public class LoginProxy extends ProxyBase {
 
@@ -24,6 +27,10 @@ package module.Login
 		}
 		
 		public function rspLogin(msg:Object):void{
+
+			MoneyMgr.GetInstance().setAssetsData(msg.money);
+			RoleMgr.GetInstance().setBaseData(msg.account);
+
 			UIManager.GetInstance().closeAll();
 			UIManager.GetInstance().showView("MainView");
 		}

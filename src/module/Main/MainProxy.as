@@ -4,6 +4,9 @@ package module.Main
 	import module.Common.ProxyBase;
 	import module.Common.Network;
 	import module.Common.UIManager;
+	import module.Common.Util;
+	import module.Common.MyDispatcher;
+	import module.Common.EventIds;
 
 	public class MainProxy extends ProxyBase{
 
@@ -48,7 +51,12 @@ package module.Main
 
 		public function rspLeaveRoom(param:Object):void
 		{
-			
+			MyDispatcher.Emit(EventIds.Main_LeaveRoom,param.data);
+		}
+
+		public function rspPersionJoin(param:Object):void
+		{
+			MyDispatcher.Emit(EventIds.Main_PersionJoin,param.data);
 		}
 	}
 

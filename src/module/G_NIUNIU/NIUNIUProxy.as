@@ -5,6 +5,9 @@ package module.G_NIUNIU
 	import module.Common.MsgIds;
 	import module.Common.UIManager;
 	import module.Common.Util;
+	import laya.events.EventDispatcher;
+	import module.Common.MyDispatcher;
+	import module.Common.EventIds;
 
 	public class NIUNIUProxy extends ProxyBase {
 		
@@ -28,6 +31,7 @@ package module.G_NIUNIU
 		public function rspNiuNiuSetPos(param:Object):void
 		{
 			UIManager.GetInstance().showView("Alert",{text:"上庄成功"});
+			MyDispatcher.Emit(EventIds.NiuNiu_SetPos,param);
 		}
 
 		// public function reqNiuNiuUpdate(param:Object):void 
@@ -37,7 +41,8 @@ package module.G_NIUNIU
 
 		public function rspNiuNiuUpdate(param:Object):void
 		{
-			Util.dump(param);
+			// Util.dump(param);
+			MyDispatcher.Emit(EventIds.NiuNiu_Update,param);
 		}
 
 		// public function reqNiuNiuSyncGame(param:Object):void 
@@ -47,7 +52,9 @@ package module.G_NIUNIU
 
 		public function rspNiuNiuSyncGame(param:Object):void
 		{
-			Util.dump(param);
+			// Util.dump(param);
+			MyDispatcher.Emit(EventIds.NiuNiu_SyncGame,param);
+			// MyDispatcher.Emit()
 		}
 
 		public function reqNiuNiuBet(param:Object):void
@@ -57,7 +64,8 @@ package module.G_NIUNIU
 
 		public function rspNiuNiuBet(param:Object):void
 		{
-			Util.dump(param);
+			// Util.dump(param);
+			MyDispatcher.Emit(EventIds.NiuNiu_Bet,param);
 		}
 	}
 

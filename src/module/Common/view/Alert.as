@@ -7,7 +7,8 @@ package module.Common.view
 
 	public class Alert extends AlertUI implements IUIBase {
 		public function Alert(){
-			
+			isModal = false;
+			popupCenter = false;
 		}
 
 		public function onOpen(param:Object):void
@@ -18,9 +19,10 @@ package module.Common.view
 				UIManager.GetInstance().hideView("Alert");
 			});
 		}
+
 		public function onClose():void
 		{
-
+			
 		}
 	}
 

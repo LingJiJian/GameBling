@@ -5,6 +5,12 @@ package module.Debug
 	import laya.ui.Button;
 	import laya.events.Event;
 	import module.Debug.DebugProxy;
+	import module.Common.FactoryMgr;
+	import module.Common.view.Poker;
+	import laya.utils.Tween;
+	import laya.utils.Ease;
+	import laya.utils.Handler;
+	import module.Common.Util;
 
 	public class DebugItem extends Box {
 		
@@ -32,6 +38,14 @@ package module.Debug
 			if(data){
 				if(index == 0){
 					DebugProxy.GetInstance().reqSvrDebug(input.text);
+				}else if(index == 1){
+					var poker:Poker = FactoryMgr.GetInstance().createPoker(0,true);
+					poker.x = 100;
+					poker.y = 100;
+					Tween.to(poker,{x:300},1000,Ease.linearIn,Handler.create(this,function(args,b):void{
+
+					},[poker,2]));
+					Laya.stage.addChild(poker);
 				}
 			}
 		}

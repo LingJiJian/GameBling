@@ -1,8 +1,9 @@
 package module.Common
 {
 	import module.Common.UIManager;
+	import laya.events.EventDispatcher;
 
-	public class ProxyBase {
+	public class ProxyBase extends EventDispatcher {
 
 		protected var isAlertError:Boolean = true;
 		public function onMsg(msg:Object):void{

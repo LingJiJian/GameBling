@@ -7,6 +7,7 @@ package module.Common
 		public static const Main_CreateRoom:String = "rspCreateRoom";
 		public static const Main_JoinRoom:String = "rspJoinRoom";
 		public static const Main_LeaveRoom:String = "rspLeaveRoom";
+		public static const Main_PersionJoin:String = 'rspPersionJoin';
 
 		public static const NiuNiu_SetPos:String = 'rspNiuNiuSetPos';
 		public static const NiuNiu_Deal:String = 'rspNiuNiuDeal';

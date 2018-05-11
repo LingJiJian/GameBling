@@ -13,7 +13,10 @@ package module.Debug
 		public var debugArr:Array;
 
 		public function DebugMgr(){
-			debugArr = [{title:"服务端调试",data:'注入代码'}];
+			debugArr = [
+				{title:"服务端调试",data:'注入代码'},
+				{title:'测试动画',data:''},
+			];
 		}
 	}
 

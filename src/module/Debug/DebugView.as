@@ -12,13 +12,14 @@ package module.Debug
 			
 			this.list_debug.array = DebugMgr.GetInstance().debugArr;
 			this.list_debug.renderHandler = new Handler(this,onUpdateItem);
+			closeHandler = new Handler(onBtnClose);
 		}
 
 		public function onOpen(param:Object):void{
-			this.btn_close.on(Event.CLICK,this,onBtnClose);
+			
 		}
 		public function onClose():void{
-			this.btn_close.off(Event.CLICK,this,onBtnClose);
+			
 		}
 
 		public function onUpdateItem(cell:DebugItem,index:int):void

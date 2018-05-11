@@ -1,6 +1,7 @@
 package module.G_NIUNIU
 {
 	import module.Common.IData;
+	import laya.utils.Dictionary;
 
 	public class NIUNIUData implements IData {
 
@@ -21,13 +22,17 @@ package module.G_NIUNIU
 				5:10000
 			};
 
+		// 设置房间数据
+		public var room:Object;
+
+
 		public function NIUNIUData(){
-			
+
 		}
-		
+
 		public function onClean():void
 		{
-
+			room = null;
 		}
 	}
 
