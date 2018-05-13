@@ -2,7 +2,7 @@ package module.Common
 {
 	public class GameConfig{
 		
-		public static var ip:String = "192.168.112.129";
+		public static var ip:String = "192.168.24.129";
 		public static var port:String = "8282";
 		public static var isDebug:Boolean = true;
 

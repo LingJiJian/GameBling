@@ -57,9 +57,9 @@ package module.G_NIUNIU
 			// MyDispatcher.Emit()
 		}
 
-		public function reqNiuNiuBet(param:Object):void
+		public function reqNiuNiuBet(betidx:int,betnum:int):void
 		{
-			Network.GetInstance().send("NiuNiu",{msgid:MsgIds.NiuNiu_Bet,param:param});
+			Network.GetInstance().send("NiuNiu",{msgid:MsgIds.NiuNiu_Bet,param:{betidx:betidx,betnum:betnum}});
 		}
 
 		public function rspNiuNiuBet(param:Object):void

@@ -14,6 +14,11 @@ package module.G_NIUNIU
 			
 		}
 		
+		public function getNiuResult(cards:Array):int
+		{
+			return 0;
+		}
+
 	}
 
 }

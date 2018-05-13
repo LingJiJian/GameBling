@@ -26,10 +26,10 @@ package module.Common
 			return poker;
 		}
 
-		public function createJetton(param:Object):Jetton
+		public function createJetton(num:int):Jetton
 		{
 			var jetton:Jetton = new Jetton();
-			jetton.setData(param.num);
+			jetton.setData(num);
 			return jetton;
 		}
 

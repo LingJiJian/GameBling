@@ -4,7 +4,6 @@ package module.Login
 	import module.Common.MsgIds;
 	import module.Common.UIManager;
 	import module.Common.ProxyBase;
-	import module.Money.MoneyMgr;
 	import module.Role.RoleMgr;
 	import module.Common.MyDispatcher;
 	import module.Common.Util;

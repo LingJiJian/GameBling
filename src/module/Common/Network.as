@@ -10,7 +10,6 @@ package module.Common
 	import module.Common.GameConfig;
 	import module.G_NIUNIU.NIUNIUProxy;
 	import module.Common.UIManager;
-	import module.Money.MoneyProxy;
 	/**
 		网络通讯
 	 */
@@ -40,7 +39,6 @@ package module.Common
 			return _instance;
 		}
 
-
 		public function connect(ip:String,port:String):void
 		{
 			this.socket.close();
@@ -68,7 +66,6 @@ package module.Common
 			LoginProxy.GetInstance().onMsg(obj);
 			MainProxy.GetInstance().onMsg(obj);
 			NIUNIUProxy.GetInstance().onMsg(obj);
-			MoneyProxy.GetInstance().onMsg(obj);
         }
         private function closeHandler(e:Object= null):void
         {

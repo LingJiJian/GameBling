@@ -18,22 +18,31 @@ package module.G_NIUNIU
 	import module.Common.view.Poker;
 	import laya.utils.Handler;
 	import module.Role.RoleMgr;
+	import laya.maths.Point;
+	import laya.ui.Clip;
 
 	public class NiuNiuView extends G_NIUNIUUI implements IUIBase {
 
 		private var _betpools:Object;
 		private var _pokerpools:Object;
+		private var _lastSelectArea:int;
+		private var _curFsm:Object;
 
 		public function NiuNiuView(){
 
 			for(var i:int=0;i<5;i++)
 			{
-				this['btn_bet'+(i+1)].label = NIUNIUData.GetInstance().betDefs[i];
+				this['btn_bet'+(i+1)].label = NIUNIUData.GetInstance().betDefs[i+1];
 			}
 
 			for(i=0;i<9;i++){
 				this['icon'+(i+1)].setData(null);
 			}
+
+			for(i=1;i<=5;i++){
+				this['img_niu'+i].visible = false;
+			}
+
 			//筹码池
 			_betpools = new Object();
 			for(i=1;i<=4;i++){
@@ -63,6 +72,10 @@ package module.G_NIUNIU
 				this['btn_bet'+(i+1)].on(Event.CLICK,this,onBtnBet);
 			}
 
+			for(i=1;i<=4;i++){
+				this['p_area'+i].on(Event.CLICK,this,onClickArea);
+			}
+
 			//保存房间数据
 			NIUNIUData.GetInstance().room = param.data;	
 			this._refreshRoomData();	
@@ -87,21 +100,43 @@ package module.G_NIUNIU
 
 		public function onBtnBet(e:Event):void
 		{
+			if(_lastSelectArea == 0){
+				UIManager.GetInstance().showView("Alert",{text:'请选择下注区域'});
+				return;
+			}
+
 			if (e.currentTarget == this.btn_bet1){
-				NIUNIUProxy.GetInstance().reqNiuNiuBet(NIUNIUData.GetInstance().betDefs[1]);
+				NIUNIUProxy.GetInstance().reqNiuNiuBet(_lastSelectArea,NIUNIUData.GetInstance().betDefs[1]);
 			}
 			else if (e.currentTarget == this.btn_bet2){
-				NIUNIUProxy.GetInstance().reqNiuNiuBet(NIUNIUData.GetInstance().betDefs[2]);
+				NIUNIUProxy.GetInstance().reqNiuNiuBet(_lastSelectArea,NIUNIUData.GetInstance().betDefs[2]);
 			}
 			else if (e.currentTarget == this.btn_bet3){
-				NIUNIUProxy.GetInstance().reqNiuNiuBet(NIUNIUData.GetInstance().betDefs[3]);
+				NIUNIUProxy.GetInstance().reqNiuNiuBet(_lastSelectArea,NIUNIUData.GetInstance().betDefs[3]);
 			}
 			else if (e.currentTarget == this.btn_bet4){
-				NIUNIUProxy.GetInstance().reqNiuNiuBet(NIUNIUData.GetInstance().betDefs[4]);
+				NIUNIUProxy.GetInstance().reqNiuNiuBet(_lastSelectArea,NIUNIUData.GetInstance().betDefs[4]);
 			}
 			else if (e.currentTarget == this.btn_bet5){
-				NIUNIUProxy.GetInstance().reqNiuNiuBet(NIUNIUData.GetInstance().betDefs[5]);
+				NIUNIUProxy.GetInstance().reqNiuNiuBet(_lastSelectArea,NIUNIUData.GetInstance().betDefs[5]);
 			}
+		}
+
+		public function onClickArea(e:Event):void
+		{
+			if(_lastSelectArea != 0){
+				this['p_area'+_lastSelectArea].index = 1;
+			}
+			if(e.currentTarget == this.p_area1){
+				_lastSelectArea = 1;
+			}else if(e.currentTarget == this.p_area2){
+				_lastSelectArea = 2;
+			}else if(e.currentTarget == this.p_area3){
+				_lastSelectArea = 3;
+			}else if(e.currentTarget == this.p_area4){
+				_lastSelectArea = 4;
+			}
+			(e.currentTarget as Clip).index = 0;
 		}
 
 		public function onBtnPos(e:Event):void
@@ -118,11 +153,17 @@ package module.G_NIUNIU
 		{
 			var room:Object = NIUNIUData.GetInstance().room;
 			if(room){
-				lab_roomid.text = room.roomid;
+				lab_roomid.text = '房间ID:' + room.roomid;
 
 				for(var i:int=0;i<room.placeLimit;i++){
 					this['icon'+(i+1)].setData(room.places[(i+1)]);
 				}
+			}
+			var role:Object = RoleMgr.GetInstance().role;
+			if(role)
+			{
+				this.lab_id.text = 'ID:' + RoleMgr.GetInstance().role.id;
+				this.lab_nickname.text = RoleMgr.GetInstance().role.nickname;
 			}
 		}
 
@@ -147,11 +188,19 @@ package module.G_NIUNIU
 					// 清空数组
 					for(var areaidx:int in _pokerpools)
 					{
-						for each(var poker:Poker in _pokerpools[areaidx])
+						for each(var poker:Poker in _pokerpools[areaidx].pokers)
 						{
 							poker.removeSelf();
 						}
 						_pokerpools[areaidx] = [];
+					}
+
+					for(areaidx in _betpools){
+						for each(var struct:Object in _betpools[areaidx])
+						{
+							struct.obj.removeSelf();
+						}
+						_betpools[areaidx] = [];
 					}
 
 				}else if(e.data.status == 'prepare')
@@ -166,25 +215,26 @@ package module.G_NIUNIU
 						var len:int = cards.length;
 						var idx:int = 0;
 
+						var pokers:Array = [];
 						for(var i:int=0;i<5;i++){
-							poker = FactoryMgr.GetInstance().createPoker(0,true);
-							_pokerpools[areaidx].push(poker);
-
+							poker = FactoryMgr.GetInstance().createPoker(-1,true);
+							pokers.push(poker);
 							if(i < len){
-								poker.setData(cards[idx],false);
+								poker.setData(cards[idx],true);
 								idx++;
 							}
 
 							poker.x = p_deal.x;
 							poker.y = p_deal.y;
 							this.addChild(poker);
-							var toArea:Box = this['p_area'+areaidx];
-							Tween.to(poker, { x:toArea.x, y:toArea.y }, 2000, Ease.linearIn,new Handler(this,function(i,poker:Poker,len):void{
-								if(i<len){
+							var toArea:Box = this['p_card'+areaidx];
+							Tween.to(poker, { x:toArea.x + i * 20, y:toArea.y }, 1200, Ease.linearIn,new Handler(this,function(i,poker:Poker,len):void{
+								if(i < len){
 									poker.playFaceUp();
 								}
-							},[i,poker,len]),areaidx*300);
+							},[i,poker,len]),areaidx*400 + i * 50);
 						}
+						_pokerpools[areaidx] = {cards:cards,pokers:pokers};
 					}
 
 				}else if(e.data.status == 'betting')
@@ -198,18 +248,21 @@ package module.G_NIUNIU
 						cards = betcards[areaidx];
 						len = cards.length;
 						idx = 0;
-
-						var pokers:Array = _pokerpools[areaidx];
+						pokers = _pokerpools[areaidx].pokers;
 						for(i=0;i<5;i++)
 						{
 							poker = pokers[i];
 							if(i >= (5 - len)){
 								poker.setData(cards[idx],false);
 								poker.playFaceUp();
+								// 保存牌数据
+								_pokerpools[areaidx].cards.push(cards[idx]);
 								idx++;
 							}
 						}
 					}	
+
+
 				}
 				Util.dump(e);
 			}
@@ -239,21 +292,22 @@ package module.G_NIUNIU
 				}
 				if(cur_persion) 
 				{
-					var jetton:Jetton = FactoryMgr.GetInstance().createJetton({num:e.data.betnum});
+					var jetton:Jetton = FactoryMgr.GetInstance().createJetton(e.data.betnum);
 					this.addChild(jetton);
 
 					if(cur_seatid == -1){ // 没座位的
 						
-						jetton.x = p_area0.x;
-						jetton.y = p_area0.y;
+						jetton.x = p_betother.x;
+						jetton.y = p_betother.y;
 
 					}else{ //有座位的
 
 						jetton.x = this['icon'+cur_seatid].x;
 						jetton.y = this['icon'+cur_seatid].y;
 					}
-					var toArea:Box = this['p_area'+e.data.betidx];
-					Tween.from(jetton, { x:toArea.x, y:toArea.y }, 2000, Ease.linearIn);
+					
+					var toArea:Clip = this['p_area'+e.data.betidx];
+					Tween.to(jetton, { x:toArea.x -25 + Math.random() * 50, y:toArea.y -25 + Math.random() * 50 }, 500, Ease.linearIn);
 					_betpools[e.data.betidx].push({num:e.data.betnum,obj:jetton});
 				}
 			}
@@ -277,7 +331,11 @@ package module.G_NIUNIU
 		private function _onPersionJoin(e):void
 		{
 			if(e.gameid == "NiuNiu"){
-				 this['icon'+e.persion.seatIdx].setData(e.persion);
+				var seatIdx:int = e.persion.seatIdx;
+				if(seatIdx > -1){
+					this['icon'+seatIdx].setData(e.persion);
+					NIUNIUData.GetInstance().room.places[seatIdx] = e.persion;
+				}
 			}
 		}
 	}

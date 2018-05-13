@@ -489,9 +489,9 @@ var FactoryMgr=(function(){
 		return poker;
 	}
 
-	__proto.createJetton=function(param){
+	__proto.createJetton=function(num){
 		var jetton=new Jetton();
-		jetton.setData(param.num);
+		jetton.setData(num);
 		return jetton;
 	}
 
@@ -515,7 +515,7 @@ var FactoryMgr=(function(){
 var GameConfig=(function(){
 	function GameConfig(){}
 	__class(GameConfig,'module.Common.GameConfig');
-	GameConfig.ip="192.168.112.129";
+	GameConfig.ip="192.168.24.129";
 	GameConfig.port="8282";
 	GameConfig.isDebug=true;
 	__static(GameConfig,
@@ -895,7 +895,6 @@ var Network=(function(){
 		LoginProxy.GetInstance().onMsg(obj);
 		MainProxy.GetInstance().onMsg(obj);
 		NIUNIUProxy.GetInstance().onMsg(obj);
-		module.Money.MoneyProxy.GetInstance().onMsg(obj);
 	}
 
 	__proto.closeHandler=function(e){
@@ -24223,8 +24222,8 @@ var NIUNIUProxy=(function(_super){
 	}
 
 	// MyDispatcher.Emit()
-	__proto.reqNiuNiuBet=function(param){
-		Network.GetInstance().send("NiuNiu",{msgid:'rspNiuNiuBet',param:param});
+	__proto.reqNiuNiuBet=function(betidx,betnum){
+		Network.GetInstance().send("NiuNiu",{msgid:'rspNiuNiuBet',param:{betidx:betidx,betnum:betnum}});
 	}
 
 	__proto.rspNiuNiuBet=function(param){
@@ -25618,12 +25617,33 @@ var Component=(function(_super){
 //class module.Common.view.Jetton extends laya.display.Sprite
 var Jetton=(function(_super){
 	function Jetton(){
+		this._imgView=null;
 		Jetton.__super.call(this);
+		this._imgView=new Sprite();
+		this._imgView.loadImage("comp/jetton1.png");
+		this._imgView.x=-this._imgView.width / 2;
+		this._imgView.y=-this._imgView.height / 2;
+		this._imgView.visible=true;
+		this.addChild(this._imgView);
 	}
 
 	__class(Jetton,'module.Common.view.Jetton',_super);
 	var __proto=Jetton.prototype;
-	__proto.setData=function(num){}
+	__proto.setData=function(num){
+		this._imgView.graphics.clear();
+		if(num==100){
+			this._imgView.loadImage("comp/jetton1.png");
+			}else if(num==500){
+			this._imgView.loadImage("comp/jetton2.png");
+			}else if(num==1000){
+			this._imgView.loadImage("comp/jetton3.png");
+			}else if(num==5000){
+			this._imgView.loadImage("comp/jetton4.png");
+			}else if(num==10000){
+			this._imgView.loadImage("comp/jetton5.png");
+		}
+	}
+
 	return Jetton;
 })(Sprite)
 
@@ -25656,33 +25676,11 @@ var Poker=(function(_super){
 	__class(Poker,'module.Common.view.Poker',_super);
 	var __proto=Poker.prototype;
 	__proto.setData=function(num,isBack){
-		this._num=num;
 		this._isBack=isBack;
-		if(!isBack){
-			var skin='';
-			if(num==53){
-				skin='king10014';
-				}else if(num==54){
-				skin='king10015';
-				}else{
-				var point=num % 13;
-				console.log(point)
-				switch(Math.floor(num / 13)){
-					case 0:
-						skin="diam"+(10000+point);
-						break ;
-					case 1:
-						skin="club"+(10000+point);
-						break ;
-					case 2:
-						skin="hear"+(10000+point);
-						break ;
-					case 3:
-						skin="spad"+(10000+point);
-						break ;
-					}
-			}
-			this._imgFace.loadImage('poker/'+skin+'.png');
+		if(num !=-1){
+			this._num=num+1;
+			this._imgFace.graphics.clear();
+			this._imgFace.loadImage('poker/card'+this._num+'.png');
 		}
 		this._imgBack.visible=isBack;
 		this._imgFace.visible=!isBack;
@@ -39591,14 +39589,25 @@ var G_NIUNIUUI=(function(_super){
 		this.icon7=null;
 		this.icon8=null;
 		this.icon9=null;
+		this.p_card2=null;
+		this.p_card3=null;
+		this.p_card4=null;
+		this.p_card5=null;
+		this.p_card1=null;
+		this.lab_roomid=null;
+		this.p_betother=null;
+		this.p_deal=null;
+		this.lab_nickname=null;
+		this.lab_id=null;
 		this.p_area1=null;
 		this.p_area2=null;
 		this.p_area3=null;
 		this.p_area4=null;
-		this.p_card=null;
-		this.lab_roomid=null;
-		this.p_area0=null;
-		this.p_deal=null;
+		this.img_niu1=null;
+		this.img_niu2=null;
+		this.img_niu3=null;
+		this.img_niu4=null;
+		this.img_niu5=null;
 		G_NIUNIUUI.__super.call(this);
 	}
 
@@ -39611,7 +39620,7 @@ var G_NIUNIUUI=(function(_super){
 		this.createView(G_NIUNIUUI.uiView);
 	}
 
-	G_NIUNIUUI.uiView={"type":"View","props":{"width":1280,"height":720},"child":[{"type":"Button","props":{"y":29,"x":16,"var":"btn_back","skin":"comp/button.png","labelSize":24,"label":"返回","height":30}},{"type":"Button","props":{"y":60,"x":735,"width":88,"var":"btn_pos","skin":"comp/button.png","labelSize":24,"label":"上庄","height":39}},{"type":"Button","props":{"y":614,"x":360,"var":"btn_bet1","skin":"comp/btn_green.png","label":"10"}},{"type":"Button","props":{"y":613,"x":468,"var":"btn_bet2","skin":"comp/btn_green.png","label":"100"}},{"type":"Button","props":{"y":613,"x":561,"var":"btn_bet3","skin":"comp/btn_green.png","label":"1000"}},{"type":"Button","props":{"y":614,"x":663,"var":"btn_bet4","skin":"comp/btn_green.png","label":"5000"}},{"type":"Button","props":{"y":614,"x":764,"var":"btn_bet5","skin":"comp/btn_green.png","label":"10000"}},{"type":"Button","props":{"y":608,"x":899,"width":113,"var":"btn_history","skin":"comp/button.png","labelSize":24,"label":"走势","height":45}},{"type":"Button","props":{"y":105,"x":848,"width":99,"var":"btn_pool","skin":"comp/button.png","labelSize":24,"label":"奖池","height":37}},{"type":"Label","props":{"y":576,"x":349,"width":444,"text":"正在下注","height":30,"fontSize":30,"color":"#000000","align":"center"}},{"type":"Image","props":{"y":60,"x":317,"skin":"comp/banker.png"}},{"type":"Image","props":{"y":55,"x":392,"var":"icon1","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headgril.png","name":"icon"}}]},{"type":"Image","props":{"y":221,"x":113,"var":"icon2","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]},{"type":"Image","props":{"y":314,"x":113,"var":"icon3","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]},{"type":"Image","props":{"y":407,"x":113,"var":"icon4","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]},{"type":"Image","props":{"y":500,"x":113,"var":"icon5","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]},{"type":"Image","props":{"y":221,"x":1074,"var":"icon6","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]},{"type":"Image","props":{"y":410,"x":1074,"var":"icon7","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]},{"type":"Image","props":{"y":316,"x":1074,"var":"icon8","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]},{"type":"Image","props":{"y":505,"x":1074,"var":"icon9","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]},{"type":"Image","props":{"y":247,"x":223,"width":192,"skin":"comp/bg_alert.png","sizeGrid":"12,14,13,11","height":177},"child":[{"type":"Box","props":{"y":92,"x":94,"width":50,"var":"p_area1","pivotY":25,"pivotX":25,"height":50}}]},{"type":"Image","props":{"y":247,"x":421,"width":192,"skin":"comp/bg_alert.png","sizeGrid":"12,14,13,11","height":177},"child":[{"type":"Box","props":{"y":92,"x":93,"width":50,"var":"p_area2","pivotY":25,"pivotX":25,"height":50}}]},{"type":"Image","props":{"y":247,"x":620,"width":192,"skin":"comp/bg_alert.png","sizeGrid":"12,14,13,11","height":177},"child":[{"type":"Box","props":{"y":92,"x":91,"width":50,"var":"p_area3","pivotY":25,"pivotX":25,"height":50}}]},{"type":"Image","props":{"y":245,"x":818,"width":192,"skin":"comp/bg_alert.png","sizeGrid":"12,14,13,11","height":177},"child":[{"type":"Box","props":{"y":65,"x":68,"width":50,"var":"p_area4","height":50}}]},{"type":"Box","props":{"y":482,"x":252,"width":50,"var":"p_card","pivotY":25,"pivotX":25,"height":50}},{"type":"Box","props":{"y":482,"x":449,"width":50,"pivotY":25,"pivotX":25,"height":50}},{"type":"Box","props":{"y":482,"x":646,"width":50,"pivotY":25,"pivotX":25,"height":50}},{"type":"Box","props":{"y":482,"x":843,"width":50,"pivotY":25,"pivotX":25,"height":50}},{"type":"Box","props":{"y":82,"x":517,"width":50,"pivotY":25,"pivotX":25,"height":50}},{"type":"Text","props":{"y":26,"x":108,"width":192,"var":"lab_roomid","text":"房间ID:","height":34,"fontSize":25,"color":"#000000"}},{"type":"Box","props":{"y":641,"x":1114,"width":50,"var":"p_area0","pivotY":25,"pivotX":25,"height":50}},{"type":"Box","props":{"y":1,"x":624,"width":50,"var":"p_deal","pivotY":25,"pivotX":25,"height":50}}]};
+	G_NIUNIUUI.uiView={"type":"View","props":{"width":1280,"height":720},"child":[{"type":"Button","props":{"y":29,"x":16,"var":"btn_back","skin":"comp/button.png","labelSize":24,"label":"返回","height":30}},{"type":"Button","props":{"y":60,"x":735,"width":88,"var":"btn_pos","skin":"comp/button.png","labelSize":24,"label":"上庄","height":39}},{"type":"Button","props":{"y":614,"x":360,"var":"btn_bet1","skin":"comp/btn_green.png","label":"10"}},{"type":"Button","props":{"y":613,"x":468,"var":"btn_bet2","skin":"comp/btn_green.png","label":"100"}},{"type":"Button","props":{"y":613,"x":561,"var":"btn_bet3","skin":"comp/btn_green.png","label":"1000"}},{"type":"Button","props":{"y":614,"x":663,"var":"btn_bet4","skin":"comp/btn_green.png","label":"5000"}},{"type":"Button","props":{"y":614,"x":764,"var":"btn_bet5","skin":"comp/btn_green.png","label":"10000"}},{"type":"Button","props":{"y":608,"x":899,"width":113,"var":"btn_history","skin":"comp/button.png","labelSize":24,"label":"走势","height":45}},{"type":"Button","props":{"y":105,"x":848,"width":99,"var":"btn_pool","skin":"comp/button.png","labelSize":24,"label":"奖池","height":37}},{"type":"Label","props":{"y":576,"x":349,"width":444,"text":"正在下注","height":30,"fontSize":30,"color":"#000000","align":"center"}},{"type":"Image","props":{"y":60,"x":317,"skin":"comp/banker.png"}},{"type":"Image","props":{"y":88,"x":425,"var":"icon1","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead","pivotY":33,"pivotX":33},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headgril.png","name":"icon"}}]},{"type":"Image","props":{"y":254,"x":146,"var":"icon2","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead","pivotY":33,"pivotX":33},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]},{"type":"Image","props":{"y":347,"x":146,"var":"icon3","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead","pivotY":33,"pivotX":33},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]},{"type":"Image","props":{"y":440,"x":146,"var":"icon4","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead","pivotY":33,"pivotX":33},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]},{"type":"Image","props":{"y":533,"x":146,"var":"icon5","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead","pivotY":33,"pivotX":33},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]},{"type":"Image","props":{"y":221,"x":1074,"var":"icon6","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]},{"type":"Image","props":{"y":410,"x":1074,"var":"icon7","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]},{"type":"Image","props":{"y":316,"x":1074,"var":"icon8","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]},{"type":"Image","props":{"y":505,"x":1074,"var":"icon9","skin":"comp/user.png","runtime":"module.Common.view.PlayerHead"},"child":[{"type":"Image","props":{"y":1,"x":1,"skin":"comp/headboy.png","name":"icon"}}]},{"type":"Box","props":{"y":478,"x":281,"width":50,"var":"p_card2","pivotY":25,"pivotX":25,"height":50}},{"type":"Box","props":{"y":478,"x":478,"width":50,"var":"p_card3","pivotY":25,"pivotX":25,"height":50}},{"type":"Box","props":{"y":478,"x":675,"width":50,"var":"p_card4","pivotY":25,"pivotX":25,"height":50}},{"type":"Box","props":{"y":478,"x":872,"width":50,"var":"p_card5","pivotY":25,"pivotX":25,"height":50}},{"type":"Box","props":{"y":82,"x":517,"width":50,"var":"p_card1","pivotY":25,"pivotX":25,"height":50}},{"type":"Text","props":{"y":26,"x":127,"width":192,"var":"lab_roomid","text":"房间ID:","height":34,"fontSize":25,"color":"#ffffff"}},{"type":"Box","props":{"y":641,"x":1114,"width":50,"var":"p_betother","pivotY":25,"pivotX":25,"height":50}},{"type":"Box","props":{"y":1,"x":624,"width":50,"var":"p_deal","pivotY":25,"pivotX":25,"height":50}},{"type":"Text","props":{"y":602,"x":129,"var":"lab_nickname","text":"nickname","fontSize":24,"color":"#ffffff"}},{"type":"Text","props":{"y":631,"x":127,"var":"lab_id","text":"ID:1000","fontSize":24,"color":"#ffffff"}},{"type":"Clip","props":{"y":349,"x":314,"width":193,"var":"p_area1","skin":"comp/clip_betselect.png","sizeGrid":"10,10,10,10","pivotY":90,"pivotX":98,"index":1,"height":176,"clipY":52,"clipX":54,"clipWidth":54,"clipHeight":52}},{"type":"Clip","props":{"y":349,"x":513,"width":193,"var":"p_area2","skin":"comp/clip_betselect.png","sizeGrid":"10,10,10,10","pivotY":90,"pivotX":98,"index":1,"height":176,"clipY":52,"clipX":54,"clipWidth":54,"clipHeight":52}},{"type":"Clip","props":{"y":349,"x":712,"width":193,"var":"p_area3","skin":"comp/clip_betselect.png","sizeGrid":"10,10,10,10","pivotY":90,"pivotX":98,"index":1,"height":176,"clipY":52,"clipX":54,"clipWidth":54,"clipHeight":52}},{"type":"Clip","props":{"y":349,"x":911,"width":193,"var":"p_area4","skin":"comp/clip_betselect.png","sizeGrid":"10,10,10,10","pivotY":90,"pivotX":98,"index":1,"height":176,"clipY":52,"clipX":54,"clipWidth":54,"clipHeight":52}},{"type":"Image","props":{"y":133,"x":575,"visible":false,"var":"img_niu1","skin":"poker/niu0.png"}},{"type":"Image","props":{"y":526,"x":255,"visible":false,"var":"img_niu2","skin":"poker/niu0.png"}},{"type":"Image","props":{"y":526,"x":454,"visible":false,"var":"img_niu3","skin":"poker/niu0.png"}},{"type":"Image","props":{"y":526,"x":652,"visible":false,"var":"img_niu4","skin":"poker/niu0.png"}},{"type":"Image","props":{"y":526,"x":851,"visible":false,"var":"img_niu5","skin":"poker/niu0.png"}}]};
 	return G_NIUNIUUI;
 })(View)
 
@@ -40294,36 +40303,22 @@ var MainJoinRoomUI=(function(_super){
 })(Dialog)
 
 
-//class ui.Comm.MsgboxUI extends laya.ui.Dialog
-var MsgboxUI=(function(_super){
-	function MsgboxUI(){
-		this.btn_close=null;
-		MsgboxUI.__super.call(this);
-	}
-
-	__class(MsgboxUI,'ui.Comm.MsgboxUI',_super);
-	var __proto=MsgboxUI.prototype;
-	__proto.createChildren=function(){
-		laya.ui.Component.prototype.createChildren.call(this);
-		this.createView(MsgboxUI.uiView);
-	}
-
-	MsgboxUI.uiView={"type":"Dialog","props":{"width":1280,"height":720},"child":[{"type":"Image","props":{"y":221,"x":440,"width":416,"skin":"comp/bg.png","sizeGrid":"36,17,17,15","height":253}},{"type":"Button","props":{"y":224,"x":824,"var":"btn_close","skin":"comp/btn_close.png"}}]};
-	return MsgboxUI;
-})(Dialog)
-
-
 //class module.G_NIUNIU.NiuNiuView extends ui.G_NIUNIU.G_NIUNIUUI
 var NiuNiuView=(function(_super){
 	function NiuNiuView(){
 		this._betpools=null;
 		this._pokerpools=null;
+		this._lastSelectArea=0;
+		this._curFsm=null;
 		NiuNiuView.__super.call(this);
 		for(var i=0;i<5;i++){
-			this['btn_bet'+(i+1)].label=NIUNIUData.GetInstance().betDefs[i];
+			this['btn_bet'+(i+1)].label=NIUNIUData.GetInstance().betDefs[i+1];
 		}
 		for(i=0;i<9;i++){
 			this['icon'+(i+1)].setData(null);
+		}
+		for(i=1;i<=5;i++){
+			this['img_niu'+i].visible=false;
 		}
 		this._betpools=new Object();
 		for(i=1;i<=4;i++){
@@ -40350,6 +40345,9 @@ var NiuNiuView=(function(_super){
 		for(var i=0;i<5;i++){
 			this['btn_bet'+(i+1)].on("click",this,this.onBtnBet);
 		}
+		for(i=1;i<=4;i++){
+			this['p_area'+i].on("click",this,this.onClickArea);
+		}
 		NIUNIUData.GetInstance().room=param.data;
 		this._refreshRoomData();
 	}
@@ -40369,21 +40367,41 @@ var NiuNiuView=(function(_super){
 	}
 
 	__proto.onBtnBet=function(e){
+		if(this._lastSelectArea==0){
+			UIManager.GetInstance().showView("Alert",{text:'请选择下注区域'});
+			return;
+		}
 		if (e.currentTarget==this.btn_bet1){
-			NIUNIUProxy.GetInstance().reqNiuNiuBet(NIUNIUData.GetInstance().betDefs[1]);
+			NIUNIUProxy.GetInstance().reqNiuNiuBet(this._lastSelectArea,NIUNIUData.GetInstance().betDefs[1]);
 		}
 		else if (e.currentTarget==this.btn_bet2){
-			NIUNIUProxy.GetInstance().reqNiuNiuBet(NIUNIUData.GetInstance().betDefs[2]);
+			NIUNIUProxy.GetInstance().reqNiuNiuBet(this._lastSelectArea,NIUNIUData.GetInstance().betDefs[2]);
 		}
 		else if (e.currentTarget==this.btn_bet3){
-			NIUNIUProxy.GetInstance().reqNiuNiuBet(NIUNIUData.GetInstance().betDefs[3]);
+			NIUNIUProxy.GetInstance().reqNiuNiuBet(this._lastSelectArea,NIUNIUData.GetInstance().betDefs[3]);
 		}
 		else if (e.currentTarget==this.btn_bet4){
-			NIUNIUProxy.GetInstance().reqNiuNiuBet(NIUNIUData.GetInstance().betDefs[4]);
+			NIUNIUProxy.GetInstance().reqNiuNiuBet(this._lastSelectArea,NIUNIUData.GetInstance().betDefs[4]);
 		}
 		else if (e.currentTarget==this.btn_bet5){
-			NIUNIUProxy.GetInstance().reqNiuNiuBet(NIUNIUData.GetInstance().betDefs[5]);
+			NIUNIUProxy.GetInstance().reqNiuNiuBet(this._lastSelectArea,NIUNIUData.GetInstance().betDefs[5]);
 		}
+	}
+
+	__proto.onClickArea=function(e){
+		if(this._lastSelectArea !=0){
+			this['p_area'+this._lastSelectArea].index=1;
+		}
+		if(e.currentTarget==this.p_area1){
+			this._lastSelectArea=1;
+			}else if(e.currentTarget==this.p_area2){
+			this._lastSelectArea=2;
+			}else if(e.currentTarget==this.p_area3){
+			this._lastSelectArea=3;
+			}else if(e.currentTarget==this.p_area4){
+			this._lastSelectArea=4;
+		}
+		(e.currentTarget).index=0;
 	}
 
 	__proto.onBtnPos=function(e){
@@ -40397,10 +40415,15 @@ var NiuNiuView=(function(_super){
 	__proto._refreshRoomData=function(){
 		var room=NIUNIUData.GetInstance().room;
 		if(room){
-			this.lab_roomid.text=room.roomid;
+			this.lab_roomid.text='房间ID:'+room.roomid;
 			for(var i=0;i<room.placeLimit;i++){
 				this['icon'+(i+1)].setData(room.places[(i+1)]);
 			}
+		};
+		var role=RoleMgr.GetInstance().role;
+		if(role){
+			this.lab_id.text='ID:'+RoleMgr.GetInstance().role.id;
+			this.lab_nickname.text=RoleMgr.GetInstance().role.nickname;
 		}
 	}
 
@@ -40424,6 +40447,14 @@ var NiuNiuView=(function(_super){
 					}
 					this._pokerpools[areaidx]=[];
 				}
+				for(areaidx in this._betpools){
+					var jetton;
+					for(var $each_jetton in this._betpools[areaidx]){
+						jetton=this._betpools[areaidx][$each_jetton];
+						jetton.removeSelf();
+					}
+					this._betpools[areaidx]=[];
+				}
 				}else if(e.data.status=='prepare'){
 				}else if(e.data.status=='deal'){
 				var betcards=e.data.betcards;
@@ -40432,21 +40463,21 @@ var NiuNiuView=(function(_super){
 					var len=cards.length;
 					var idx=0;
 					for(var i=0;i<5;i++){
-						poker=FactoryMgr.GetInstance().createPoker(0,true);
+						poker=FactoryMgr.GetInstance().createPoker(-1,true);
 						this._pokerpools[areaidx].push(poker);
 						if(i < len){
-							poker.setData(cards[idx],false);
+							poker.setData(cards[idx],true);
 							idx++;
 						}
 						poker.x=this.p_deal.x;
 						poker.y=this.p_deal.y;
 						this.addChild(poker);
-						var toArea=this['p_area'+areaidx];
-						Tween.to(poker,{x:toArea.x,y:toArea.y },2000,Ease.linearIn,new Handler(this,function(i,poker,len){
-							if(i<len){
+						var toArea=this['p_card'+areaidx];
+						Tween.to(poker,{x:toArea.x+i *20,y:toArea.y },1200,Ease.linearIn,new Handler(this,function(i,poker,len){
+							if(i < len){
 								poker.playFaceUp();
 							}
-						},[i,poker,len]),areaidx*300);
+						},[i,poker,len]),areaidx*400+i *50);
 					}
 				}
 				}else if(e.data.status=='betting'){
@@ -40487,17 +40518,17 @@ var NiuNiuView=(function(_super){
 				}
 			}
 			if(cur_persion){
-				var jetton=FactoryMgr.GetInstance().createJetton({num:e.data.betnum});
+				var jetton=FactoryMgr.GetInstance().createJetton(e.data.betnum);
 				this.addChild(jetton);
 				if(cur_seatid==-1){
-					jetton.x=this.p_area0.x;
-					jetton.y=this.p_area0.y;
+					jetton.x=this.p_betother.x;
+					jetton.y=this.p_betother.y;
 					}else{
 					jetton.x=this['icon'+cur_seatid].x;
 					jetton.y=this['icon'+cur_seatid].y;
 				};
 				var toArea=this['p_area'+e.data.betidx];
-				Tween.from(jetton,{x:toArea.x,y:toArea.y },2000,Ease.linearIn);
+				Tween.to(jetton,{x:toArea.x-25+Math.random()*50,y:toArea.y-25+Math.random()*50 },500,Ease.linearIn);
 				this._betpools[e.data.betidx].push({num:e.data.betnum,obj:jetton});
 			}
 		}
@@ -40506,15 +40537,24 @@ var NiuNiuView=(function(_super){
 
 	__proto._onLeaveRoom=function(e){
 		if(e.gameid=="NiuNiu"){
-			NIUNIUData.GetInstance().onClean();
-			UIManager.GetInstance().closeAll();
-			UIManager.GetInstance().showView("MainView");
+			if(e.persion.client_id==RoleMgr.GetInstance().role.client_id){
+				NIUNIUData.GetInstance().onClean();
+				UIManager.GetInstance().closeAll();
+				UIManager.GetInstance().showView("MainView");
+				}else{
+				this['icon'+e.persion.seatIdx].setData(null);
+			}
 		}
 	}
 
 	__proto._onPersionJoin=function(e){
-		if(e.gameid=="NiuNiu"){}
-			Util.dump(e);
+		if(e.gameid=="NiuNiu"){
+			var seatIdx=e.persion.seatIdx;
+			if(seatIdx >-1){
+				this['icon'+seatIdx].setData(e.persion);
+				NIUNIUData.GetInstance().room.places[seatIdx]=e.persion;
+			}
+		}
 	}
 
 	return NiuNiuView;
@@ -40707,7 +40747,7 @@ var MainJoinRoom=(function(_super){
 })(MainJoinRoomUI)
 
 
-	Laya.__init([LoaderManager,EventDispatcher,Timer,View,Browser,Render,DrawText,WebGLContext2D,ShaderCompile,GraphicAnimation,LocalStorage,AtlasGrid]);
+	Laya.__init([EventDispatcher,LoaderManager,Timer,View,Browser,Render,DrawText,WebGLContext2D,ShaderCompile,GraphicAnimation,LocalStorage,AtlasGrid]);
 	/**LayaGameStart**/
 	new LayaSample();
 

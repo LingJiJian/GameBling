@@ -36,36 +36,13 @@ package module.Common.view
 
         public function setData(num:int,isBack:Boolean):void
         {
-            _num = num;
             _isBack = isBack;
 
-            if(!isBack){
-                var skin:String = '';
-                if(num == 53){
-                    skin = 'king10014';
-                }else if(num == 54){
-                    skin = 'king10015';
-                }else
-                {
-                    var point:int = num % 13;
-                    trace(point)
-                    switch(Math.floor(num / 13))
-                    {
-                        case 0:
-                            skin = "diam"+(10000+point);
-                            break;
-                        case 1:
-                            skin = "club"+(10000+point);
-                            break;
-                        case 2:
-                            skin = "hear"+(10000+point);
-                            break;
-                        case 3:
-                            skin = "spad"+(10000+point);
-                            break;
-                    }
-                }
-                _imgFace.loadImage('poker/'+skin+'.png');
+            if(num != -1){
+                _num = num + 1;
+
+                _imgFace.graphics.clear();
+                _imgFace.loadImage('poker/card'+_num+'.png');
             }
 
             _imgBack.visible = isBack;
